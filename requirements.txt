@@ -1,0 +1,18 @@
+push  - layout + css + favicon -app folder
+- push auth folder
+- push  - ui folder - component folder
+- push  - providers
+- push  - components
+
+push prisma
+push schema
+push files in root folder
+push lib folder
+push hooks folder
+
+back in app, push - root files in dashboard
+push _components
+push _actions
+
+push api
+push wizard
