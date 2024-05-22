@@ -50,6 +50,11 @@ export async function DeleteTransaction(id: string) {
             decrement: transaction.amount,
           },
         }),
+        ...(transaction.type === "savings" && {
+          savings: {
+            decrement: transaction.amount,
+          },
+        }),
       },
     }),
     // Update year history
@@ -69,6 +74,11 @@ export async function DeleteTransaction(id: string) {
         }),
         ...(transaction.type === "income" && {
           income: {
+            decrement: transaction.amount,
+          },
+        }),
+        ...(transaction.type === "savings" && {
+          savings: {
             decrement: transaction.amount,
           },
         }),
