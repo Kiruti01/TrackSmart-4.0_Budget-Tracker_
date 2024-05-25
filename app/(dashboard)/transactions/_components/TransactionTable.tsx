@@ -187,13 +187,6 @@ function TransactionTable({ from, to }: Props) {
     <div className="w-full">
       <div className="flex flex-wrap items-end justify-between gap-2 py-4">
         <div className="flex gap-2">
-          {table.getColumn("category") && (
-            <DataTableFacetedFilter
-              title="Category"
-              column={table.getColumn("category")}
-              options={categoriesOptions}
-            />
-          )}
           {table.getColumn("type") && (
             <DataTableFacetedFilter
               title="Type"
@@ -203,6 +196,13 @@ function TransactionTable({ from, to }: Props) {
                 { label: "Expense", value: "expense" },
                 { label: "Savings", value: "savings" },
               ]}
+            />
+          )}
+          {table.getColumn("category") && (
+            <DataTableFacetedFilter
+              title="Category"
+              column={table.getColumn("category")}
+              options={categoriesOptions}
             />
           )}
         </div>
