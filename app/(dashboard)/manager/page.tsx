@@ -113,7 +113,9 @@ function CategoryList({ type }: { type: TransactionType }) {
                             <span
                                 className={cn(
                                     "m-1",
-                                    type === "income" ? "text-emerald-500" : "text-red-500"
+                                    type === "income" ? "text-emerald-500" :
+                                    type === "expense" ? "text-red-500" :
+                                    type === "savings" ? "text-blue-500" : "" // Add bg-blue-500 for savings
                                 )}
                             >
                                 {type}
