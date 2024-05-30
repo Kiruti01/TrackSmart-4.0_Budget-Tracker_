@@ -72,6 +72,9 @@ async function page() {
       </div>
       <Overview userSettings={userSettings} />
       <History userSettings={userSettings} />
+      <div className="container flex flex-wrap items-center justify-center gap-6 py-8">
+        <p className="text-xl font-bold">&copy; 2024 Kiruti Tech&trade;</p>
+      </div>
     </div>
   );
 }
