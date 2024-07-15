@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { DateToUTCDate, GetFormatterForCurrency } from "@/lib/helpers";
 import { UserSettings } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
-import { Landmark, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { Landmark, HandCoins,TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import React, { ReactNode, useCallback, useMemo } from "react";
 import CountUp from "react-countup";
 
@@ -36,6 +36,7 @@ function StatsCards({ from, to, userSettings }: Props) {
   // const bal = income - savings - expense
 
   const balance = income - savings - expense;
+  const total = balance + savings;
 
   //experiments
 
@@ -91,6 +92,17 @@ function StatsCards({ from, to, userSettings }: Props) {
           percentage={savingsPercentage}
           icon={
             <Landmark className="h-12 w-12 items-center rounded-lg p-2 text-blue-500 bg-blue-400/10" />
+          }
+        />
+      </SkeletonWrapper>
+      <SkeletonWrapper isLoading={statsQuery.isFetching}>
+        <StatCard
+          formatter={formatter}
+          value={total}
+          title="Net Worth"
+          // percentage={savingsPercentage}
+          icon={
+            < HandCoins  className="h-12 w-12 items-center rounded-lg p-2 text-green-500 bg-green-400/10" />
           }
         />
       </SkeletonWrapper>
