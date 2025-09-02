@@ -43,6 +43,13 @@ function History({ userSettings }: { userSettings: UserSettings }) {
   const dataAvailable =
     historyDataQuery.data && historyDataQuery.data.length > 0;
 
+  // Get balance before the current period for proper balance calculation
+  const balanceQuery = useQuery({
+    queryKey: ["balance-before", timeframe, period],
+    queryFn: () =>
+      fetch(`/api/stats/balance-before?timeframe=${timeframe}&year=${period.year}&month=${period.month}`)
+        .then((res) => res.json()),
+  });
   return (
     <div className="container">
       <h2 className="mt-12 text-3xl font-bold">History</h2>
@@ -212,7 +219,7 @@ function CustomTooltip({ active, payload, formatter }: any) {
   const data = payload[0].payload;
   const { expense, income, savings } = data;
 
-  const balance = income - savings - expense; // Adjust the balance calculation
+  const balance = income - expense - savings; // Current period balance calculation
 
   return (
     <div className="min-w-[300px] rounded border bg-background p-4">

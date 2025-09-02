@@ -32,24 +32,38 @@ function StatsCards({ from, to, userSettings }: Props) {
   const income = statsQuery.data?.income || 0;
   const expense = statsQuery.data?.expense || 0;
   const savings = statsQuery.data?.savings || 0;
+  const totalBalanceBeforePeriod = statsQuery.data?.totalBalanceBeforePeriod || 0;
 
-  // const bal = income - savings - expense
+  // Query for total savings before the current period
+  const totalSavingsQuery = useQuery({
+    queryKey: ["total-savings", from],
+    queryFn: () =>
+      fetch(`/api/stats/total-savings?before=${DateToUTCDate(from)}`).then((res) => res.json()),
+    enabled: !!statsQuery.data,
+  });
 
-  const balance = income - savings - expense;
-  const total = balance + savings;
+  // Calculate current period balance
+  const currentPeriodBalance = income - expense - savings;
+  
+  // Calculate total balance including carry-over from previous periods
+  const balance = totalBalanceBeforePeriod + currentPeriodBalance;
+  
+  // Calculate total net worth (balance + all savings including previous periods)
+  const totalSavingsBeforePeriod = totalSavingsQuery.data?.totalSavings || 0;
+  const total = balance + savings + totalSavingsBeforePeriod;
 
   //experiments
 
   const expensePercentage = parseFloat(((expense / income) * 100).toFixed(2));
   const savingsPercentage = parseFloat(((savings / income) * 100).toFixed(2));
-  const balancePercentage = parseFloat(((balance / income) * 100).toFixed(2));
+  const balancePercentage = income > 0 ? parseFloat(((currentPeriodBalance / income) * 100).toFixed(2)) : 0;
   const incomePercentage = 100;
 
   //
 
   return (
     <div className="relative flex w-full flex-wrap gap-2 md:flex-nowrap">
-      <SkeletonWrapper isLoading={statsQuery.isFetching}>
+      <SkeletonWrapper isLoading={statsQuery.isFetching || totalSavingsQuery.isFetching}>
         <StatCard
           formatter={formatter}
           value={income}
@@ -61,7 +75,7 @@ function StatsCards({ from, to, userSettings }: Props) {
         />
       </SkeletonWrapper>
 
-      <SkeletonWrapper isLoading={statsQuery.isFetching}>
+      <SkeletonWrapper isLoading={statsQuery.isFetching || totalSavingsQuery.isFetching}>
         <StatCard
           formatter={formatter}
           value={expense}
@@ -73,7 +87,7 @@ function StatsCards({ from, to, userSettings }: Props) {
         />
       </SkeletonWrapper>
 
-      <SkeletonWrapper isLoading={statsQuery.isFetching}>
+      <SkeletonWrapper isLoading={statsQuery.isFetching || totalSavingsQuery.isFetching}>
         <StatCard
           formatter={formatter}
           value={balance}
@@ -84,7 +98,7 @@ function StatsCards({ from, to, userSettings }: Props) {
           }
         />
       </SkeletonWrapper>
-      <SkeletonWrapper isLoading={statsQuery.isFetching}>
+      <SkeletonWrapper isLoading={statsQuery.isFetching || totalSavingsQuery.isFetching}>
         <StatCard
           formatter={formatter}
           value={savings}
@@ -95,7 +109,7 @@ function StatsCards({ from, to, userSettings }: Props) {
           }
         />
       </SkeletonWrapper>
-      <SkeletonWrapper isLoading={statsQuery.isFetching}>
+      <SkeletonWrapper isLoading={statsQuery.isFetching || totalSavingsQuery.isFetching}>
         <StatCard
           formatter={formatter}
           value={total}
