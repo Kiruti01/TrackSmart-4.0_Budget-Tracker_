@@ -47,6 +47,23 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
       },
     }),
 
+    // Update cumulative savings if this is a savings transaction
+    ...(type === "savings" ? [
+      prisma.cumulativeSavings.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          totalSavings: amount,
+        },
+        update: {
+          totalSavings: {
+            increment: amount,
+          },
+          lastUpdated: new Date(),
+        },
+      })
+    ] : []),
+
     // Update month aggregate table
     prisma.monthHistory.upsert({
       where: {

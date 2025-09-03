@@ -50,6 +50,23 @@ function History({ userSettings }: { userSettings: UserSettings }) {
       fetch(`/api/stats/balance-before?timeframe=${timeframe}&year=${period.year}&month=${period.month}`)
         .then((res) => res.json()),
   });
+
+  // Get cumulative savings for proper balance calculation
+  const cumulativeSavingsQuery = useQuery({
+    queryKey: ["cumulative-savings-history", timeframe, period],
+    queryFn: () => {
+      const periodStart = timeframe === "year" 
+        ? new Date(period.year, 0, 1)
+        : new Date(period.year, period.month, 1);
+      const periodEnd = timeframe === "year"
+        ? new Date(period.year, 11, 31)
+        : new Date(period.year, period.month + 1, 0);
+      
+      return fetch(`/api/stats/cumulative-savings?from=${periodStart.toISOString()}&to=${periodEnd.toISOString()}`)
+        .then((res) => res.json());
+    },
+  });
+
   return (
     <div className="container">
       <h2 className="mt-12 text-3xl font-bold">History</h2>
@@ -83,13 +100,13 @@ function History({ userSettings }: { userSettings: UserSettings }) {
                 className="flex items-center gap-2 text-sm"
               >
                 <div className="h-4 w-4 rounded-full bg-blue-500"></div>
-                Savings
+                Monthly Savings
               </Badge>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <SkeletonWrapper isLoading={historyDataQuery.isFetching}>
+          <SkeletonWrapper isLoading={historyDataQuery.isFetching || cumulativeSavingsQuery.isFetching}>
             {dataAvailable && (
               <ResponsiveContainer width={"100%"} height={300}>
                 <BarChart
@@ -182,7 +199,7 @@ function History({ userSettings }: { userSettings: UserSettings }) {
                   />
                   <Bar
                     dataKey={"savings"}
-                    label="Savings"
+                    label="Monthly Savings"
                     fill="url(#savingsBar)"
                     radius={4}
                     className="cursor-pointer"
@@ -190,7 +207,12 @@ function History({ userSettings }: { userSettings: UserSettings }) {
                   <Tooltip
                     cursor={{ opacity: 0.1 }}
                     content={(props) => (
-                      <CustomTooltip formatter={formatter} {...props} />
+                      <CustomTooltip 
+                        formatter={formatter} 
+                        balanceBeforePeriod={balanceQuery.data?.balanceBeforePeriod || 0}
+                        savingsBeforePeriod={savingsBeforePeriod}
+                        {...props} 
+                      />
                     )}
                   />
                 </BarChart>
@@ -213,13 +235,17 @@ function History({ userSettings }: { userSettings: UserSettings }) {
 
 export default History;
 
-function CustomTooltip({ active, payload, formatter }: any) {
+function CustomTooltip({ active, payload, formatter, balanceBeforePeriod, savingsBeforePeriod }: any) {
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0].payload;
   const { expense, income, savings } = data;
 
-  const balance = income - expense - savings; // Current period balance calculation
+  // Calculate period balance including carry-over
+  const periodBalance = balanceBeforePeriod + income - expense - savings;
+  
+  // Calculate cumulative savings up to this point
+  const cumulativeSavingsAtPoint = savingsBeforePeriod + savings;
 
   return (
     <div className="min-w-[300px] rounded border bg-background p-4">
@@ -240,15 +266,22 @@ function CustomTooltip({ active, payload, formatter }: any) {
       />
       <TooltipRow
         formatter={formatter}
-        label="Savings"
+        label="Monthly Savings"
         value={savings}
         bgColor="bg-blue-500"
         textColor="text-blue-500"
       />
       <TooltipRow
         formatter={formatter}
+        label="Total Savings"
+        value={cumulativeSavingsAtPoint}
+        bgColor="bg-green-500"
+        textColor="text-green-500"
+      />
+      <TooltipRow
+        formatter={formatter}
         label="Balance"
-        value={balance}
+        value={periodBalance}
         bgColor="bg-gray-100"
         textColor="text-foreground"
       />

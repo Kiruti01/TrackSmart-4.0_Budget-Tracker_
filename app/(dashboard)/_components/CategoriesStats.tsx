@@ -53,6 +53,7 @@ function CategoriesStats({ userSettings, from, to }: Props) {
           formatter={formatter}
           type="savings"
           data={statsQuery.data || []}
+          title="Monthly Savings"
         />
       </SkeletonWrapper>
     </div>
@@ -65,10 +66,12 @@ function CategoriesCard({
   data,
   type,
   formatter,
+  title,
 }: {
   type: TransactionType;
   formatter: Intl.NumberFormat;
   data: GetCategoriesStatsResponseType;
+  title?: string;
 }) {
   const filteredData = data.filter((el) => el.type === type);
   const total = filteredData.reduce(
@@ -80,7 +83,7 @@ function CategoriesCard({
     <Card className="h-80 w-full col-span-6">
       <CardHeader>
         <CardTitle className="grid grid-flow-row justify-between gap-2 text-muted-foreground md:grid-flow-col">
-          {type === "income" ? "Incomes" : type === "savings" ? "Savings" : "Expenses"} by category
+          {title || (type === "income" ? "Incomes" : type === "savings" ? "Savings" : "Expenses")} by category
         </CardTitle>
       </CardHeader>
 
