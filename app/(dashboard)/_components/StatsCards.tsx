@@ -27,9 +27,9 @@ function StatsCards({ from, to, userSettings }: Props) {
 
   // Query for cumulative savings data
   const cumulativeSavingsQuery = useQuery({
-    queryKey: ["cumulative-savings", from, to],
+    queryKey: ["cumulative-savings"],
     queryFn: () =>
-      fetch(`/api/stats/cumulative-savings?from=${DateToUTCDate(from)}&to=${DateToUTCDate(to)}`).then((res) => res.json()),
+      fetch(`/api/stats/cumulative-savings`).then((res) => res.json()),
   });
   const formatter = useMemo(() => {
     return GetFormatterForCurrency(userSettings.currency);
@@ -42,7 +42,6 @@ function StatsCards({ from, to, userSettings }: Props) {
 
   // Get cumulative savings data
   const totalCumulativeSavings = cumulativeSavingsQuery.data?.totalCumulativeSavings || 0;
-  const savingsBeforePeriod = cumulativeSavingsQuery.data?.savingsBeforePeriod || 0;
 
   // Calculate current period balance
   const currentPeriodBalance = income - expense - currentPeriodSavings;

@@ -53,18 +53,9 @@ function History({ userSettings }: { userSettings: UserSettings }) {
 
   // Get cumulative savings for proper balance calculation
   const cumulativeSavingsQuery = useQuery({
-    queryKey: ["cumulative-savings-history", timeframe, period],
-    queryFn: () => {
-      const periodStart = timeframe === "year" 
-        ? new Date(period.year, 0, 1)
-        : new Date(period.year, period.month, 1);
-      const periodEnd = timeframe === "year"
-        ? new Date(period.year, 11, 31)
-        : new Date(period.year, period.month + 1, 0);
-      
-      return fetch(`/api/stats/cumulative-savings?from=${periodStart.toISOString()}&to=${periodEnd.toISOString()}`)
-        .then((res) => res.json());
-    },
+    queryKey: ["cumulative-savings"],
+    queryFn: () =>
+      fetch(`/api/stats/cumulative-savings`).then((res) => res.json()),
   });
 
   return (
@@ -210,7 +201,7 @@ function History({ userSettings }: { userSettings: UserSettings }) {
                       <CustomTooltip 
                         formatter={formatter} 
                         balanceBeforePeriod={balanceQuery.data?.balanceBeforePeriod || 0}
-                        savingsBeforePeriod={savingsBeforePeriod}
+                        totalCumulativeSavings={cumulativeSavingsQuery.data?.totalCumulativeSavings || 0}
                         {...props} 
                       />
                     )}
@@ -235,7 +226,7 @@ function History({ userSettings }: { userSettings: UserSettings }) {
 
 export default History;
 
-function CustomTooltip({ active, payload, formatter, balanceBeforePeriod, savingsBeforePeriod }: any) {
+function CustomTooltip({ active, payload, formatter, balanceBeforePeriod, totalCumulativeSavings }: any) {
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0].payload;
@@ -243,9 +234,6 @@ function CustomTooltip({ active, payload, formatter, balanceBeforePeriod, saving
 
   // Calculate period balance including carry-over
   const periodBalance = balanceBeforePeriod + income - expense - savings;
-  
-  // Calculate cumulative savings up to this point
-  const cumulativeSavingsAtPoint = savingsBeforePeriod + savings;
 
   return (
     <div className="min-w-[300px] rounded border bg-background p-4">
@@ -274,7 +262,7 @@ function CustomTooltip({ active, payload, formatter, balanceBeforePeriod, saving
       <TooltipRow
         formatter={formatter}
         label="Total Savings"
-        value={cumulativeSavingsAtPoint}
+        value={totalCumulativeSavings}
         bgColor="bg-green-500"
         textColor="text-green-500"
       />

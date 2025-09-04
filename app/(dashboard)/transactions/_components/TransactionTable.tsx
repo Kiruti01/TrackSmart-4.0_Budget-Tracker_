@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DeleteTransactionDialog from "@/app/(dashboard)/transactions/_components/DeleteTransactionDialog";
+import DeleteAllTransactionsDialog from "@/app/(dashboard)/transactions/_components/DeleteAllTransactionsDialog";
 
 interface Props {
   from: Date;
@@ -227,6 +228,7 @@ function TransactionTable({ from, to }: Props) {
             <DownloadIcon className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
+          <DeleteAllTransactionsDialog />
           <DataTableViewOptions table={table} />
         </div>
       </div>

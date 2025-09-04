@@ -8,53 +8,11 @@ export async function GET(request: Request) {
     redirect("/sign-in");
   }
 
-  const { searchParams } = new URL(request.url);
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-
-  if (!from || !to) {
-    return Response.json({ error: "Missing date parameters" }, { status: 400 });
-  }
-
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-
   // Get cumulative savings up to the start of the period
   const cumulativeSavings = await getCumulativeSavings(user.id);
   
-  // Get current period savings
-  const currentPeriodSavings = await prisma.transaction.aggregate({
-    where: {
-      userId: user.id,
-      type: "savings",
-      date: {
-        gte: fromDate,
-        lte: toDate,
-      },
-    },
-    _sum: {
-      amount: true,
-    },
-  });
-
-  // Get savings before the current period
-  const savingsBeforePeriod = await prisma.transaction.aggregate({
-    where: {
-      userId: user.id,
-      type: "savings",
-      date: {
-        lt: fromDate,
-      },
-    },
-    _sum: {
-      amount: true,
-    },
-  });
-
   return Response.json({
     totalCumulativeSavings: cumulativeSavings.totalSavings,
-    currentPeriodSavings: currentPeriodSavings._sum.amount || 0,
-    savingsBeforePeriod: savingsBeforePeriod._sum.amount || 0,
   });
 }
 
