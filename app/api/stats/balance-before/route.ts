@@ -33,7 +33,7 @@ export async function GET(request: Request) {
   }
 
   const { timeframe: tf, year: y, month: m } = queryParams.data;
-  
+
   // Calculate the date before which we want to get the balance
   let beforeDate: Date;
   if (tf === "year") {
@@ -56,11 +56,18 @@ export async function GET(request: Request) {
     },
   });
 
-  const incomeBeforePeriod = transactionsBeforePeriod.find((t) => t.type === "income")?._sum.amount || 0;
-  const expenseBeforePeriod = transactionsBeforePeriod.find((t) => t.type === "expense")?._sum.amount || 0;
-  const savingsBeforePeriod = transactionsBeforePeriod.find((t) => t.type === "savings")?._sum.amount || 0;
-  
-  const balanceBeforePeriod = incomeBeforePeriod - expenseBeforePeriod - savingsBeforePeriod;
+  const incomeBeforePeriod =
+    transactionsBeforePeriod.find((t: { type: string }) => t.type === "income")
+      ?._sum.amount || 0;
+  const expenseBeforePeriod =
+    transactionsBeforePeriod.find((t: { type: string }) => t.type === "expense")
+      ?._sum.amount || 0;
+  const savingsBeforePeriod =
+    transactionsBeforePeriod.find((t: { type: string }) => t.type === "savings")
+      ?._sum.amount || 0;
+
+  const balanceBeforePeriod =
+    incomeBeforePeriod - expenseBeforePeriod - savingsBeforePeriod;
 
   return Response.json({
     balanceBeforePeriod,

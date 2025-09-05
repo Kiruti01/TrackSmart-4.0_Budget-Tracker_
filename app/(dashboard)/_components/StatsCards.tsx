@@ -4,9 +4,20 @@ import { GetBalanceStatsResponseType } from "@/app/api/stats/balance/route";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
 import { Card } from "@/components/ui/card";
 import { DateToUTCDate, GetFormatterForCurrency } from "@/lib/helpers";
-import { UserSettings } from "@prisma/client";
+import { useIsDesktop } from "@/lib/useIsDesktop";
+// import { UserSettings } from "@prisma/client";
+type UserSettings = {
+  currency: string;
+  // Add other properties as needed
+};
 import { useQuery } from "@tanstack/react-query";
-import { Landmark, HandCoins,TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import {
+  Landmark,
+  HandCoins,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 import React, { ReactNode, useCallback, useMemo } from "react";
 import CountUp from "react-countup";
 
@@ -19,10 +30,21 @@ interface Props {
 function StatsCards({ from, to, userSettings }: Props) {
   const statsQuery = useQuery<GetBalanceStatsResponseType>({
     queryKey: ["overview", "stats", from, to],
-    queryFn: () =>
-      fetch(
-        `/api/stats/balance?from=${DateToUTCDate(from)}&to=${DateToUTCDate(to)}`
-      ).then((res) => res.json()),
+    queryFn: () => {
+      const fromDate = DateToUTCDate(from); // Start of day
+      const toDate = DateToUTCDate(to); // End of day
+
+      // console.log("StatsCards date conversion:", {
+      //   originalFrom: from,
+      //   originalTo: to,
+      //   convertedFrom: fromDate.toISOString(),
+      //   convertedTo: toDate.toISOString(),
+      // });
+
+      return fetch(
+        `/api/stats/balance?from=${fromDate.toISOString()}&to=${toDate.toISOString()}`
+      ).then((res) => res.json());
+    },
   });
 
   // Query for cumulative savings data
@@ -38,25 +60,32 @@ function StatsCards({ from, to, userSettings }: Props) {
   const income = statsQuery.data?.income || 0;
   const expense = statsQuery.data?.expense || 0;
   const currentPeriodSavings = statsQuery.data?.savings || 0;
-  const totalBalanceBeforePeriod = statsQuery.data?.totalBalanceBeforePeriod || 0;
+  const totalBalanceBeforePeriod =
+    statsQuery.data?.totalBalanceBeforePeriod || 0;
 
   // Get cumulative savings data
-  const totalCumulativeSavings = cumulativeSavingsQuery.data?.totalCumulativeSavings || 0;
+  const totalCumulativeSavings =
+    cumulativeSavingsQuery.data?.totalCumulativeSavings || 0;
 
   // Calculate current period balance
   const currentPeriodBalance = income - expense - currentPeriodSavings;
-  
+
   // Calculate total balance including carry-over from previous periods
   const balance = totalBalanceBeforePeriod + currentPeriodBalance;
-  
+
   // Calculate total net worth (balance + total cumulative savings)
   const total = balance + totalCumulativeSavings;
 
   //experiments
 
   const expensePercentage = parseFloat(((expense / income) * 100).toFixed(2));
-  const savingsPercentage = parseFloat(((currentPeriodSavings / income) * 100).toFixed(2));
-  const balancePercentage = income > 0 ? parseFloat(((currentPeriodBalance / income) * 100).toFixed(2)) : 0;
+  const savingsPercentage = parseFloat(
+    ((currentPeriodSavings / income) * 100).toFixed(2)
+  );
+  const balancePercentage =
+    income > 0
+      ? parseFloat(((currentPeriodBalance / income) * 100).toFixed(2))
+      : 0;
   const incomePercentage = 100;
 
   //
@@ -98,7 +127,7 @@ function StatsCards({ from, to, userSettings }: Props) {
           }
         />
       </SkeletonWrapper>
-      
+
       <SkeletonWrapper isLoading={cumulativeSavingsQuery.isFetching}>
         <StatCard
           formatter={formatter}
@@ -110,7 +139,7 @@ function StatsCards({ from, to, userSettings }: Props) {
           }
         />
       </SkeletonWrapper>
-      
+
       <SkeletonWrapper isLoading={cumulativeSavingsQuery.isFetching}>
         <StatCard
           formatter={formatter}
@@ -121,14 +150,16 @@ function StatsCards({ from, to, userSettings }: Props) {
           }
         />
       </SkeletonWrapper>
-      
-      <SkeletonWrapper isLoading={statsQuery.isFetching || cumulativeSavingsQuery.isFetching}>
+
+      <SkeletonWrapper
+        isLoading={statsQuery.isFetching || cumulativeSavingsQuery.isFetching}
+      >
         <StatCard
           formatter={formatter}
           value={total}
           title="Net Worth"
           icon={
-            < HandCoins  className="h-12 w-12 items-center rounded-lg p-2 text-green-500 bg-green-400/10" />
+            <HandCoins className="h-12 w-12 items-center rounded-lg p-2 text-green-500 bg-green-400/10" />
           }
         />
       </SkeletonWrapper>
@@ -151,11 +182,16 @@ function StatCard({
   value: number;
   percentage?: number; // Change the type of percentage to number
 }) {
+  const isDesktop = useIsDesktop();
+
   const formatFn = useCallback(
     (value: number) => {
-      return formatter.format(value);
+      if (isDesktop && value >= 1_000_000) {
+        return (value / 1_000_000).toFixed(2) + " M"; // Only shorten on desktop
+      }
+      return formatter.format(value); // Use normal formatting on mobile/tablet
     },
-    [formatter]
+    [formatter, isDesktop]
   );
 
   return (

@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GetFormatterForCurrency } from "@/lib/helpers";
 import { Period, Timeframe } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { UserSettings } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import React, { useCallback, useMemo, useState } from "react";
 import CountUp from "react-countup";
@@ -21,23 +20,53 @@ import {
   YAxis,
 } from "recharts";
 
-function History({ userSettings }: { userSettings: UserSettings }) {
+function History({ userSettings }: { userSettings: { currency: string } }) {
   const [timeframe, setTimeframe] = useState<Timeframe>("month");
+  const currentDate = new Date();
+
   const [period, setPeriod] = useState<Period>({
-    month: new Date().getMonth(),
-    year: new Date().getFullYear(),
+    month: currentDate.getMonth(),
+    year: currentDate.getFullYear(),
   });
+
+  // ADD DEBUG LOGGING
+  // console.log("Current period state:", period);
+  // console.log(
+  //   "Current month name:",
+  //   new Date(period.year, period.month).toLocaleString("default", {
+  //     month: "long",
+  //   })
+  // );
 
   const formatter = useMemo(() => {
     return GetFormatterForCurrency(userSettings.currency);
   }, [userSettings.currency]);
 
+  // ADD THIS MISSING QUERY
   const historyDataQuery = useQuery({
     queryKey: ["overview", "history", timeframe, period],
-    queryFn: () =>
-      fetch(
-        `/api/history-data?timeframe=${timeframe}&year=${period.year}&month=${period.month}`
-      ).then((res) => res.json()),
+    queryFn: async () => {
+      // console.log("Fetching history data for:", {
+      //   timeframe,
+      //   year: period.year,
+      //   month: period.month,
+      //   monthName: new Date(period.year, period.month).toLocaleString(
+      //     "default",
+      //     { month: "long" }
+      //   ),
+      // });
+
+      const response = await fetch(
+        `/api/history-data?timeframe=${timeframe}&year=${period.year}&month=${
+          period.month + 1
+        }`
+      );
+
+      const data = await response.json();
+
+      // console.log("History data received:", data);
+      return data;
+    },
   });
 
   const dataAvailable =
@@ -47,8 +76,9 @@ function History({ userSettings }: { userSettings: UserSettings }) {
   const balanceQuery = useQuery({
     queryKey: ["balance-before", timeframe, period],
     queryFn: () =>
-      fetch(`/api/stats/balance-before?timeframe=${timeframe}&year=${period.year}&month=${period.month}`)
-        .then((res) => res.json()),
+      fetch(
+        `/api/stats/balance-before?timeframe=${timeframe}&year=${period.year}&month=${period.month}`
+      ).then((res) => res.json()),
   });
 
   // Get cumulative savings for proper balance calculation
@@ -97,7 +127,11 @@ function History({ userSettings }: { userSettings: UserSettings }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <SkeletonWrapper isLoading={historyDataQuery.isFetching || cumulativeSavingsQuery.isFetching}>
+          <SkeletonWrapper
+            isLoading={
+              historyDataQuery.isFetching || cumulativeSavingsQuery.isFetching
+            }
+          >
             {dataAvailable && (
               <ResponsiveContainer width={"100%"} height={300}>
                 <BarChart
@@ -198,11 +232,16 @@ function History({ userSettings }: { userSettings: UserSettings }) {
                   <Tooltip
                     cursor={{ opacity: 0.1 }}
                     content={(props) => (
-                      <CustomTooltip 
-                        formatter={formatter} 
-                        balanceBeforePeriod={balanceQuery.data?.balanceBeforePeriod || 0}
-                        totalCumulativeSavings={cumulativeSavingsQuery.data?.totalCumulativeSavings || 0}
-                        {...props} 
+                      <CustomTooltip
+                        formatter={formatter}
+                        balanceBeforePeriod={
+                          balanceQuery.data?.balanceBeforePeriod || 0
+                        }
+                        totalCumulativeSavings={
+                          cumulativeSavingsQuery.data?.totalCumulativeSavings ||
+                          0
+                        }
+                        {...props}
                       />
                     )}
                   />
@@ -226,7 +265,13 @@ function History({ userSettings }: { userSettings: UserSettings }) {
 
 export default History;
 
-function CustomTooltip({ active, payload, formatter, balanceBeforePeriod, totalCumulativeSavings }: any) {
+function CustomTooltip({
+  active,
+  payload,
+  formatter,
+  balanceBeforePeriod,
+  totalCumulativeSavings,
+}: any) {
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0].payload;
@@ -237,7 +282,6 @@ function CustomTooltip({ active, payload, formatter, balanceBeforePeriod, totalC
 
   return (
     <div className="min-w-[300px] rounded border bg-background p-4">
-
       <TooltipRow
         formatter={formatter}
         label="Income"

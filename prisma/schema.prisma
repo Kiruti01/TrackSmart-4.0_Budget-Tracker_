@@ -45,7 +45,7 @@ model MonthHistory {
   expense Float
   savings Float
 
-  @@id([day, month, year, userId])
+    @@id([userId, day, month, year]) 
 }
 
 model YearHistory {

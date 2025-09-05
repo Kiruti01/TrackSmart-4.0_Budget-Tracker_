@@ -97,7 +97,7 @@ async function getYearHistoryData(userId: string, year: number) {
     let income = 0;
     let savings = 0;
 
-    const month = result.find((row) => row.month === i);
+    const month = result.find((row: { month: number }) => row.month === i);
     if (month) {
       expense = month._sum.expense || 0;
       income = month._sum.income || 0;
@@ -140,16 +140,20 @@ async function getMonthHistoryData(
     ],
   });
 
+  // console.log("MonthHistory raw result:", result);
+  // console.log("User ID:", userId);
+  // console.log("Year:", year, "Month:", month);
+
   if (!result || result.length === 0) return [];
 
   const history: HistoryData[] = [];
-  const daysInMonth = getDaysInMonth(new Date(year, month));
+  const daysInMonth = getDaysInMonth(new Date(year, month - 1));
   for (let i = 1; i <= daysInMonth; i++) {
     let expense = 0;
     let income = 0;
     let savings = 0;
 
-    const day = result.find((row) => row.day === i);
+    const day = result.find((row: { day: number }) => row.day === i);
     if (day) {
       expense = day._sum.expense || 0;
       income = day._sum.income || 0;

@@ -28,14 +28,19 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
   });
   if (!categoryRow) throw new Error("Category not found");
 
+  // ✅ Use LOCAL date methods, not UTC methods
+  const localDay = date.getDate(); // Local day (1-31)
+  const localMonth = date.getMonth() + 1; // Local month (1-12)
+  const localYear = date.getFullYear(); // Local year
+
   // Use Prisma transaction to do all operations atomically
   await prisma.$transaction([
-    // 1️⃣ Create transaction record
+    // 1️⃣ Create transaction record (keep this as is)
     prisma.transaction.create({
       data: {
         userId: user.id,
         amount,
-        date,
+        date, // This should be stored as UTC date
         description: description || "",
         type,
         category: categoryRow.name,
@@ -60,21 +65,21 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
         ]
       : []),
 
-    // 3️⃣ Update monthHistory
+    // 3️⃣ ✅ FIXED: Update monthHistory with LOCAL dates
     prisma.monthHistory.upsert({
       where: {
-        day_month_year_userId: {
+        userId_day_month_year: {
           userId: user.id,
-          day: date.getUTCDate(),
-          month: date.getUTCMonth() + 1, // Prisma months usually 1-12
-          year: date.getUTCFullYear(),
+          day: localDay, // ✅ Local day
+          month: localMonth, // ✅ Local month
+          year: localYear, // ✅ Local year
         },
       },
       create: {
         userId: user.id,
-        day: date.getUTCDate(),
-        month: date.getUTCMonth() + 1,
-        year: date.getUTCFullYear(),
+        day: localDay, // ✅ Local day
+        month: localMonth, // ✅ Local month
+        year: localYear, // ✅ Local year
         income: type === "income" ? amount : 0,
         expense: type === "expense" ? amount : 0,
         savings: type === "savings" ? amount : 0,
@@ -86,19 +91,19 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
       },
     }),
 
-    // 4️⃣ Update yearHistory
+    // 4️⃣ ✅ FIXED: Update yearHistory with LOCAL dates
     prisma.yearHistory.upsert({
       where: {
         month_year_userId: {
+          month: localMonth, // ✅ Local month
+          year: localYear, // ✅ Local year
           userId: user.id,
-          month: date.getUTCMonth() + 1,
-          year: date.getUTCFullYear(),
         },
       },
       create: {
         userId: user.id,
-        month: date.getUTCMonth() + 1,
-        year: date.getUTCFullYear(),
+        month: localMonth, // ✅ Local month
+        year: localYear, // ✅ Local year
         income: type === "income" ? amount : 0,
         expense: type === "expense" ? amount : 0,
         savings: type === "savings" ? amount : 0,
