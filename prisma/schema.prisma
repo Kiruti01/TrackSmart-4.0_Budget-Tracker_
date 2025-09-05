@@ -60,8 +60,9 @@ model YearHistory {
 }
 
 model CumulativeSavings {
-  userId   String @id
-  savings  Float  @default(0)
-  updatedAt DateTime @default(now())
+  userId       String  @id
+  totalSavings Float   @default(0)
+  updatedAt    DateTime @default(now())
 }
+
 
