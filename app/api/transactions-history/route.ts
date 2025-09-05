@@ -40,48 +40,34 @@ export type GetTransactionHistoryResponseType = Awaited<
 
 async function getTransactionsHistory(userId: string, from: Date, to: Date) {
   const userSettings = await prisma.userSettings.findUnique({
-    where: {
-      userId,
-    },
+    where: { userId },
   });
-  if (!userSettings) {
-    throw new Error("user settings not found");
-  }
+  if (!userSettings) throw new Error("user settings not found");
 
   const formatter = GetFormatterForCurrency(userSettings.currency);
 
   const transactions = await prisma.transaction.findMany({
-    where: {
-      userId,
-      date: {
-        gte: from,
-        lte: to,
-      },
-    },
-    orderBy: {
-      date: "desc",
-    },
+    where: { userId, date: { gte: from, lte: to } },
+    orderBy: { date: "desc" },
     select: {
       id: true,
-      amount: true,
-      date: true,
       userId: true,
       type: true,
       category: true,
-      categoryIcon: true, // <--- include it
+      categoryIcon: true, // must include this
       description: true,
+      date: true,
+      amount: true,
     },
   });
 
-  return transactions.map(
-    (transaction: { amount: string | number | bigint }) => ({
-      ...transaction,
-      // lets format the amount with the user currency
-      formattedAmount: formatter.format(
-        typeof transaction.amount === "string"
-          ? Number(transaction.amount)
-          : transaction.amount
-      ),
-    })
-  );
+  // Type the parameter using Prisma return type
+  return transactions.map((transaction: (typeof transactions)[number]) => ({
+    ...transaction,
+    formattedAmount: formatter.format(
+      typeof transaction.amount === "string"
+        ? Number(transaction.amount)
+        : transaction.amount
+    ),
+  }));
 }
