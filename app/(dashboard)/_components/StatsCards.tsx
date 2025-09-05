@@ -96,7 +96,7 @@ function StatsCards({ from, to, userSettings }: Props) {
         <StatCard
           formatter={formatter}
           value={income}
-          title="Income"
+          title="Income this Month"
           percentage={incomePercentage}
           icon={
             <TrendingUp className="h-12 w-12 items-center rounded-lg p-2 text-emerald-500 bg-emerald-400/10" />
@@ -108,7 +108,7 @@ function StatsCards({ from, to, userSettings }: Props) {
         <StatCard
           formatter={formatter}
           value={expense}
-          title="Expense"
+          title="Expense this Month"
           percentage={expensePercentage}
           icon={
             <TrendingDown className="h-12 w-12 items-center rounded-lg p-2 text-red-500 bg-red-400/10" />
@@ -132,7 +132,7 @@ function StatsCards({ from, to, userSettings }: Props) {
         <StatCard
           formatter={formatter}
           value={currentPeriodSavings}
-          title="Monthly Savings"
+          title="Savings this Month"
           percentage={savingsPercentage}
           icon={
             <Landmark className="h-12 w-12 items-center rounded-lg p-2 text-blue-500 bg-blue-400/10" />
