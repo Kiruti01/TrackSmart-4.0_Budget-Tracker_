@@ -17,7 +17,7 @@ export async function DeleteAllTransactions() {
         userId: user.id,
       },
     }),
-    
+
     // Reset cumulative savings
     prisma.cumulativeSavings.upsert({
       where: { userId: user.id },
@@ -27,17 +27,17 @@ export async function DeleteAllTransactions() {
       },
       update: {
         totalSavings: 0,
-        lastUpdated: new Date(),
+        updatedAt: new Date(),
       },
     }),
-    
+
     // Delete all month history
     prisma.monthHistory.deleteMany({
       where: {
         userId: user.id,
       },
     }),
-    
+
     // Delete all year history
     prisma.yearHistory.deleteMany({
       where: {
