@@ -174,12 +174,14 @@ function TransactionTable({ from, to }: Props) {
 
   const categoriesOptions = useMemo(() => {
     const categoriesMap = new Map();
-    history.data?.forEach((transaction) => {
-      categoriesMap.set(transaction.category, {
-        value: transaction.category,
-        label: `${transaction.categoryIcon} ${transaction.category}`,
-      });
-    });
+    history.data?.forEach(
+      (transaction: { category: any; categoryIcon: any }) => {
+        categoriesMap.set(transaction.category, {
+          value: transaction.category,
+          label: `${transaction.categoryIcon} ${transaction.category}`,
+        });
+      }
+    );
     const uniqueCategories = new Set(categoriesMap.values());
     return Array.from(uniqueCategories);
   }, [history.data]);
