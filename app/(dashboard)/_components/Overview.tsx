@@ -22,6 +22,7 @@ function Overview({ userSettings }: { userSettings: any }) {
     to: new Date(),
   });
 
+  console.log("Overview dateRange:", dateRange);
   return (
     <>
       <div className="container flex flex-wrap items-end justify-between gap-2 py-6">
@@ -43,6 +44,7 @@ function Overview({ userSettings }: { userSettings: any }) {
                 return;
               }
 
+              console.log("Updating dateRange to:", { from, to });
               setDateRange({ from, to });
             }}
           />

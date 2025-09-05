@@ -16,6 +16,7 @@ export async function GET(request: Request) {
   const queryParams = OverviewQuerySchema.safeParse({ from, to });
 
   if (!queryParams.success) {
+    console.error("Query params validation failed:", queryParams.error);
     return Response.json(queryParams.error.message, {
       status: 400,
     });
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
     queryParams.data.to
   );
 
+  console.log("Balance stats result:", stats);
   return Response.json(stats);
 }
 
@@ -35,6 +37,8 @@ export type GetBalanceStatsResponseType = Awaited<
 >;
 
 async function getBalanceStats(userId: string, from: Date, to: Date) {
+  console.log("Getting balance stats for user:", userId, "from:", from, "to:", to);
+  
   // Get balance from all transactions before the current period
   const balanceBeforePeriod = await prisma.transaction.aggregate({
     where: {
@@ -83,6 +87,16 @@ async function getBalanceStats(userId: string, from: Date, to: Date) {
     },
   });
 
+  console.log("Current period totals:", totals);
+  
+  const result = {
+    expense: totals.find((t) => t.type === "expense")?._sum.amount || 0,
+    income: totals.find((t) => t.type === "income")?._sum.amount || 0,
+    savings: totals.find((t) => t.type === "savings")?._sum.amount || 0,
+    totalBalanceBeforePeriod,
+  };
+  
+  console.log("Final balance stats result:", result);
   return {
     expense: totals.find((t) => t.type === "expense")?._sum.amount || 0,
     income: totals.find((t) => t.type === "income")?._sum.amount || 0,
