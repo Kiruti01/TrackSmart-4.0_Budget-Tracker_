@@ -46,7 +46,7 @@ export async function DeleteTransaction(id: string) {
     // Update month history
     prisma.monthHistory.update({
       where: {
-        day_month_year_userId: {
+        userId_day_month_year: {
           userId: user.id,
           day: transaction.date.getUTCDate(),
           month: transaction.date.getUTCMonth(),
@@ -55,19 +55,13 @@ export async function DeleteTransaction(id: string) {
       },
       data: {
         ...(transaction.type === "expense" && {
-          expense: {
-            decrement: transaction.amount,
-          },
+          expense: { decrement: transaction.amount },
         }),
         ...(transaction.type === "income" && {
-          income: {
-            decrement: transaction.amount,
-          },
+          income: { decrement: transaction.amount },
         }),
         ...(transaction.type === "savings" && {
-          savings: {
-            decrement: transaction.amount,
-          },
+          savings: { decrement: transaction.amount },
         }),
       },
     }),
