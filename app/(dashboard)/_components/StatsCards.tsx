@@ -121,7 +121,7 @@ function StatsCards({ from, to, userSettings }: Props) {
           formatter={formatter}
           value={balance}
           title="Balance"
-          percentage={balancePercentage}
+          // percentage={balancePercentage}
           icon={
             <Wallet className="h-12 w-12 items-center rounded-lg p-2 text-violet-500 bg-violet-400/10" />
           }
