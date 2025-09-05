@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  
 }
 
 model UserSettings {
@@ -18,7 +17,7 @@ model Category {
   name      String
   userId    String
   icon      String
-  type      String   @default("income")
+  type      String @default("income")
 
   @@unique([name, userId, type])
 }
@@ -26,7 +25,7 @@ model Category {
 model Transaction {
   id           String   @id @default(uuid())
   createdAt    DateTime @default(now())
-  updateAt     DateTime @default(now())
+  updatedAt    DateTime @default(now())  // fixed typo
   amount       Float
   description  String
   date         DateTime
@@ -62,7 +61,5 @@ model YearHistory {
 model CumulativeSavings {
   userId       String  @id
   totalSavings Float   @default(0)
-  updatedAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt  // auto-update on changes
 }
-
-

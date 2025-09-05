@@ -9,6 +9,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 export async function CreateTransaction(form: CreateTransactionSchemaType) {
+  // Validate form data
   const parsedBody = CreateTransactionSchema.safeParse(form);
   if (!parsedBody.success) {
     throw new Error(parsedBody.error.message);
@@ -20,21 +21,16 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
   }
 
   const { amount, category, date, description, type } = parsedBody.data;
+
+  // Fetch category info
   const categoryRow = await prisma.category.findFirst({
-    where: {
-      userId: user.id,
-      name: category,
-    },
+    where: { userId: user.id, name: category },
   });
+  if (!categoryRow) throw new Error("Category not found");
 
-  if (!categoryRow) {
-    throw new Error("category not found");
-  }
-
-  // NOTE: don't make confusion between $transaction ( prisma ) and prisma.transaction (table)
-
+  // Use Prisma transaction to do all operations atomically
   await prisma.$transaction([
-    // Create user transaction
+    // 1️⃣ Create transaction record
     prisma.transaction.create({
       data: {
         userId: user.id,
@@ -47,82 +43,70 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
       },
     }),
 
-    // Update cumulative savings if this is a savings transaction
-    ...(type === "savings" ? [
-      prisma.cumulativeSavings.upsert({
-        where: { userId: user.id },
-        create: {
-          userId: user.id,
-          totalSavings: amount,
-        },
-        update: {
-          totalSavings: {
-            increment: amount,
-          },
-          lastUpdated: new Date(),
-        },
-      })
-    ] : []),
+    // 2️⃣ Update cumulative savings if this is a savings transaction
+    ...(type === "savings"
+      ? [
+          prisma.cumulativeSavings.upsert({
+            where: { userId: user.id },
+            create: {
+              userId: user.id,
+              totalSavings: amount,
+            },
+            update: {
+              totalSavings: { increment: amount },
+              updatedAt: new Date(), // uses schema field
+            },
+          }),
+        ]
+      : []),
 
-    // Update month aggregate table
+    // 3️⃣ Update monthHistory
     prisma.monthHistory.upsert({
       where: {
         day_month_year_userId: {
           userId: user.id,
           day: date.getUTCDate(),
-          month: date.getUTCMonth(),
+          month: date.getUTCMonth() + 1, // Prisma months usually 1-12
           year: date.getUTCFullYear(),
         },
       },
       create: {
         userId: user.id,
         day: date.getUTCDate(),
-        month: date.getUTCMonth(),
+        month: date.getUTCMonth() + 1,
         year: date.getUTCFullYear(),
-        expense: type === "expense" ? amount : 0,
         income: type === "income" ? amount : 0,
+        expense: type === "expense" ? amount : 0,
         savings: type === "savings" ? amount : 0,
       },
       update: {
-        expense: {
-          increment: type === "expense" ? amount : 0,
-        },
-        income: {
-          increment: type === "income" ? amount : 0,
-        },
-        savings: {
-          increment: type === "savings" ? amount : 0,
-        },
+        income: { increment: type === "income" ? amount : 0 },
+        expense: { increment: type === "expense" ? amount : 0 },
+        savings: { increment: type === "savings" ? amount : 0 },
       },
     }),
 
-    // Update year aggreate
+    // 4️⃣ Update yearHistory
     prisma.yearHistory.upsert({
       where: {
         month_year_userId: {
           userId: user.id,
-          month: date.getUTCMonth(),
+          month: date.getUTCMonth() + 1,
           year: date.getUTCFullYear(),
         },
       },
       create: {
         userId: user.id,
-        month: date.getUTCMonth(),
+        month: date.getUTCMonth() + 1,
         year: date.getUTCFullYear(),
-        expense: type === "expense" ? amount : 0,
         income: type === "income" ? amount : 0,
+        expense: type === "expense" ? amount : 0,
         savings: type === "savings" ? amount : 0,
       },
       update: {
-        expense: {
-          increment: type === "expense" ? amount : 0,
-        },
-        income: {
-          increment: type === "income" ? amount : 0,
-        },
-        savings: {
-          increment: type === "savings" ? amount : 0,
-        },
+        income: { increment: type === "income" ? amount : 0 },
+        expense: { increment: type === "expense" ? amount : 0 },
+        savings: { increment: type === "savings" ? amount : 0 },
       },
     }),
   ]);
