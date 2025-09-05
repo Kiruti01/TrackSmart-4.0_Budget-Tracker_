@@ -62,7 +62,7 @@ function StatsCards({ from, to, userSettings }: Props) {
   //
 
   return (
-    <div className="relative flex w-full flex-wrap gap-2 md:flex-nowrap">
+    <div className="relative grid w-full gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       <SkeletonWrapper isLoading={statsQuery.isFetching}>
         <StatCard
           formatter={formatter}
@@ -159,20 +159,20 @@ function StatCard({
   );
 
   return (
-    <Card className="flex h-24 w-full items-center gap-2 p-4">
+    <Card className="flex h-24 w-full items-center gap-2 p-4 min-w-0">
       {icon}
-      <div className="flex flex-col items-start gap-0">
-        <p className="text-muted-foreground">{title}</p>
+      <div className="flex flex-col items-start gap-0 min-w-0 flex-1">
+        <p className="text-muted-foreground text-sm truncate">{title}</p>
         <CountUp
           preserveValue
           redraw={false}
           end={value}
           decimals={2}
           formattingFn={formatFn}
-          className="text-2xl"
+          className="text-lg font-semibold truncate"
         />
         {percentage !== undefined && ( // Include incomePercentage here
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 truncate">
             {percentage}% of income
           </p>
         )}

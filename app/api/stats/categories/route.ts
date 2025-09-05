@@ -16,6 +16,7 @@ export async function GET(request: Request) {
 
   const queryParams = OverviewQuerySchema.safeParse({ from, to });
   if (!queryParams.success) {
+    console.error("Categories query params validation failed:", queryParams.error);
     throw new Error(queryParams.error.message);
   }
 
@@ -24,6 +25,8 @@ export async function GET(request: Request) {
     queryParams.data.from,
     queryParams.data.to
   );
+  
+  console.log("Categories stats result:", stats);
   return Response.json(stats);
 }
 
@@ -32,6 +35,8 @@ export type GetCategoriesStatsResponseType = Awaited<
 >;
 
 async function getCategoriesStats(userId: string, from: Date, to: Date) {
+  console.log("Getting categories stats for user:", userId, "from:", from, "to:", to);
+  
   const stats = await prisma.transaction.groupBy({
     by: ["type", "category", "categoryIcon"],
     where: {
@@ -51,5 +56,6 @@ async function getCategoriesStats(userId: string, from: Date, to: Date) {
     },
   });
 
+  console.log("Categories stats raw result:", stats);
   return stats;
 }
