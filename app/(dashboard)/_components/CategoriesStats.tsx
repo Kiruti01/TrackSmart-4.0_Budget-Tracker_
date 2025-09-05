@@ -117,7 +117,7 @@ function CategoriesCard({
             <div className="flex w-full flex-col gap-4 p-4">
               {filteredData.map(
                 (item: {
-                  _sum: { amount: number };
+                  _sum: { amount: number | null }; // <-- allow null here
                   category:
                     | boolean
                     | React.ReactElement<
@@ -144,7 +144,7 @@ function CategoriesCard({
                     | null
                     | undefined;
                 }) => {
-                  const amount = item._sum.amount || 0;
+                  const amount = item._sum.amount || 0; // <-- safe fallback
                   const percentage = (amount * 100) / (total || amount);
 
                   return (
