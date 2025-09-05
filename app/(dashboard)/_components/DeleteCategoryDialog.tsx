@@ -13,7 +13,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { TransactionType } from "@/lib/types";
-import { Category } from "@prisma/client";
+// Define Category type locally if not available from @prisma/client
+type Category = {
+  id: string;
+  name: string;
+  type: "income" | "expense" | "savings";
+  userId: string;
+  createdAt: Date;
+  icon: string;
+};
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { ReactNode } from "react";
 import { toast } from "sonner";

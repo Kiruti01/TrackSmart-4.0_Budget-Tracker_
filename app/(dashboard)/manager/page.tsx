@@ -20,9 +20,12 @@ import { cn } from "@/lib/utils";
 type Category = {
   id: string;
   name: string;
+  type: "income" | "expense" | "savings";
+  userId: string;
+  createdAt: Date;
   icon: string;
-  type: string;
 };
+
 import { useQuery } from "@tanstack/react-query";
 import {
   Landmark,
