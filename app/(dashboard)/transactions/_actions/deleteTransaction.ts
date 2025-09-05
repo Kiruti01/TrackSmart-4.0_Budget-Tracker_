@@ -30,17 +30,19 @@ export async function DeleteTransaction(id: string) {
       },
     }),
     // Update cumulative savings if this was a savings transaction
-    ...(transaction.type === "savings" ? [
-      prisma.cumulativeSavings.update({
-        where: { userId: user.id },
-        data: {
-          totalSavings: {
-            decrement: transaction.amount,
-          },
-          lastUpdated: new Date(),
-        },
-      })
-    ] : []),
+    ...(transaction.type === "savings"
+      ? [
+          prisma.cumulativeSavings.update({
+            where: { userId: user.id },
+            data: {
+              totalSavings: {
+                decrement: transaction.amount,
+              },
+              updatedAt: new Date(),
+            },
+          }),
+        ]
+      : []),
     // Update month history
     prisma.monthHistory.update({
       where: {
