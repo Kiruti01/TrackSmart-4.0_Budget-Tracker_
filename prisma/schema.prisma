@@ -58,3 +58,10 @@ model YearHistory {
 
   @@id([month, year, userId])
 }
+
+model CumulativeSavings {
+  userId   String @id
+  savings  Float  @default(0)
+  updatedAt DateTime @default(now())
+}
+
