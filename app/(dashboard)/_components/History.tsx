@@ -121,7 +121,7 @@ function History({ userSettings }: { userSettings: { currency: string } }) {
                 className="flex items-center gap-2 text-sm"
               >
                 <div className="h-4 w-4 rounded-full bg-blue-500"></div>
-                Monthly Savings
+                Savings
               </Badge>
             </div>
           </CardTitle>
