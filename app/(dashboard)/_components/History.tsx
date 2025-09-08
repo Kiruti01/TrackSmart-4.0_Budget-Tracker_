@@ -106,21 +106,21 @@ function History({ userSettings }: { userSettings: { currency: string } }) {
                 variant={"outline"}
                 className="flex items-center gap-2 text-sm"
               >
-                <div className="h-4 w-4 rounded-full bg-emerald-500"></div>
+                <div className="h-4 w-2 rounded-full bg-emerald-500"></div>
                 Income
               </Badge>
               <Badge
                 variant={"outline"}
                 className="flex items-center gap-2 text-sm"
               >
-                <div className="h-4 w-4 rounded-full bg-red-500"></div>
+                <div className="h-4 w-2 rounded-full bg-red-500"></div>
                 Expense
               </Badge>
               <Badge
                 variant={"outline"}
                 className="flex items-center gap-2 text-sm"
               >
-                <div className="h-4 w-4 rounded-full bg-blue-500"></div>
+                <div className="h-4 w-2 rounded-full bg-blue-500"></div>
                 Savings
               </Badge>
             </div>
