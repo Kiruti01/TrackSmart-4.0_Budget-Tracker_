@@ -34,12 +34,12 @@ async function page() {
         <div className="container flex flex-wrap items-center justify-between gap-6 py-8">
           <p className="text-3xl font-bold">Hello, {user.firstName}! 👋</p>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
             <CreateTransactionDialog
               trigger={
                 <Button
                   variant={"outline"}
-                  className="border-emerald-500 bg-emerald-950 text-white hover:bg-emerald-700 hover:text-white"
+                  className="border-emerald-500 bg-emerald-950 text-white hover:bg-emerald-700 hover:text-white w-full sm:w-auto"
                 >
                   New income 🤑
                 </Button>
@@ -51,7 +51,7 @@ async function page() {
               trigger={
                 <Button
                   variant={"outline"}
-                  className="border-rose-500 bg-rose-950 text-white hover:bg-rose-700 hover:text-white"
+                  className="border-rose-500 bg-rose-950 text-white hover:bg-rose-700 hover:text-white w-full sm:w-auto"
                 >
                   New expense 😩
                 </Button>
@@ -63,7 +63,7 @@ async function page() {
               trigger={
                 <Button
                   variant={"outline"}
-                  className="border-blue-500 bg-blue-950 text-white hover:bg-blue-700 hover:text-white"
+                  className="border-blue-500 bg-blue-950 text-white hover:bg-blue-700 hover:text-white w-full sm:w-auto"
                 >
                   New Savings 🏦
                 </Button>
@@ -76,7 +76,7 @@ async function page() {
       <Overview userSettings={userSettings} />
       <History userSettings={userSettings} />
       <div className="container flex flex-wrap items-center justify-center gap-6 py-8">
-        <p className="text-xl font-bold">&copy; 2024 Kiruti Tech&trade;</p>
+        <p className="text-xl font-bold">&copy; {new Date().getFullYear()} Kiruti Tech&trade;</p>
       </div>
     </div>
   );
