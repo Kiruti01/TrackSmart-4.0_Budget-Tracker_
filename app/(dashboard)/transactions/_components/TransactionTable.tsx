@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { DataTableViewOptions } from "@/components/datatable/ColumnToggle";
 
 import { download, generateCsv, mkConfig } from "export-to-csv";
-import { DownloadIcon, MoreHorizontal, TrashIcon } from "lucide-react";
+import { DownloadIcon, MoreHorizontal, PencilIcon, TrashIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import DeleteTransactionDialog from "@/app/(dashboard)/transactions/_components/DeleteTransactionDialog";
 import DeleteAllTransactionsDialog from "@/app/(dashboard)/transactions/_components/DeleteAllTransactionsDialog";
+import EditTransactionDialog from "@/app/(dashboard)/_components/EditTransactionDialog";
 
 interface Props {
   from: Date;
@@ -312,9 +313,15 @@ export default TransactionTable;
 
 function RowActions({ transaction }: { transaction: TransactionHistoryRow }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   return (
     <>
+      <EditTransactionDialog
+        open={showEditDialog}
+        setOpen={setShowEditDialog}
+        transaction={transaction}
+      />
       <DeleteTransactionDialog
         open={showDeleteDialog}
         setOpen={setShowDeleteDialog}
@@ -330,6 +337,15 @@ function RowActions({ transaction }: { transaction: TransactionHistoryRow }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="flex items-center gap-2"
+            onSelect={() => {
+              setShowEditDialog(true);
+            }}
+          >
+            <PencilIcon className="h-4 w-4 text-muted-foreground" />
+            Edit
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center gap-2"
             onSelect={() => {
