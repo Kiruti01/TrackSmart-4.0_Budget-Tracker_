@@ -10,6 +10,8 @@ export const CreateTransactionSchema = z.object({
     z.literal("expense"),
     z.literal("savings"),
   ]),
+  originalAmount: z.coerce.number().positive().multipleOf(0.01).optional(),
+  originalCurrency: z.string().optional(),
 });
 
 export type CreateTransactionSchemaType = z.infer<

@@ -7,6 +7,7 @@ import {
 } from "@/schema/transaction";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { convertCurrency } from "@/lib/exchangeRates";
 
 export async function CreateTransaction(form: CreateTransactionSchemaType) {
   // Validate form data
@@ -20,8 +21,36 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
     redirect("/sign-in");
   }
 
-  const { amount, category, date, description, type } = parsedBody.data;
+  const { amount, category, date, description, type, originalAmount, originalCurrency } = parsedBody.data;
 
+  // Get user's current currency setting
+  const userSettings = await prisma.userSettings.findUnique({
+    where: { userId: user.id },
+  });
+
+  if (!userSettings) {
+    throw new Error("User settings not found");
+  }
+
+  // Determine original amount and currency
+  const finalOriginalAmount = originalAmount || amount;
+  const finalOriginalCurrency = originalCurrency || userSettings.currency;
+
+  // Convert amount to user's default currency if needed
+  let finalAmount = amount;
+  if (finalOriginalCurrency !== userSettings.currency) {
+    try {
+      finalAmount = await convertCurrency(
+        finalOriginalAmount,
+        finalOriginalCurrency,
+        userSettings.currency
+      );
+    } catch (error) {
+      console.error("Currency conversion failed:", error);
+      // If conversion fails, use original amount
+      finalAmount = finalOriginalAmount;
+    }
+  }
   // Fetch category info
   const categoryRow = await prisma.category.findFirst({
     where: { userId: user.id, name: category },
@@ -39,12 +68,14 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
     prisma.transaction.create({
       data: {
         userId: user.id,
-        amount,
+        amount: finalAmount,
         date, // This should be stored as UTC date
         description: description || "",
         type,
         category: categoryRow.name,
         categoryIcon: categoryRow.icon,
+        originalAmount: finalOriginalAmount,
+        originalCurrency: finalOriginalCurrency,
       },
     }),
 
@@ -55,10 +86,10 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
             where: { userId: user.id },
             create: {
               userId: user.id,
-              totalSavings: amount,
+              totalSavings: finalAmount,
             },
             update: {
-              totalSavings: { increment: amount },
+              totalSavings: { increment: finalAmount },
               updatedAt: new Date(), // uses schema field
             },
           }),
@@ -80,14 +111,14 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
         day: localDay, // ✅ Local day
         month: localMonth, // ✅ Local month
         year: localYear, // ✅ Local year
-        income: type === "income" ? amount : 0,
-        expense: type === "expense" ? amount : 0,
-        savings: type === "savings" ? amount : 0,
+        income: type === "income" ? finalAmount : 0,
+        expense: type === "expense" ? finalAmount : 0,
+        savings: type === "savings" ? finalAmount : 0,
       },
       update: {
-        income: { increment: type === "income" ? amount : 0 },
-        expense: { increment: type === "expense" ? amount : 0 },
-        savings: { increment: type === "savings" ? amount : 0 },
+        income: { increment: type === "income" ? finalAmount : 0 },
+        expense: { increment: type === "expense" ? finalAmount : 0 },
+        savings: { increment: type === "savings" ? finalAmount : 0 },
       },
     }),
 
@@ -104,14 +135,14 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
         userId: user.id,
         month: localMonth, // ✅ Local month
         year: localYear, // ✅ Local year
-        income: type === "income" ? amount : 0,
-        expense: type === "expense" ? amount : 0,
-        savings: type === "savings" ? amount : 0,
+        income: type === "income" ? finalAmount : 0,
+        expense: type === "expense" ? finalAmount : 0,
+        savings: type === "savings" ? finalAmount : 0,
       },
       update: {
-        income: { increment: type === "income" ? amount : 0 },
-        expense: { increment: type === "expense" ? amount : 0 },
-        savings: { increment: type === "savings" ? amount : 0 },
+        income: { increment: type === "income" ? finalAmount : 0 },
+        expense: { increment: type === "expense" ? finalAmount : 0 },
+        savings: { increment: type === "savings" ? finalAmount : 0 },
       },
     }),
   ]);

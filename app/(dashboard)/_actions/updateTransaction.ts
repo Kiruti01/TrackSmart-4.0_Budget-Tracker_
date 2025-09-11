@@ -5,6 +5,7 @@ import { CreateTransactionSchema } from "@/schema/transaction";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { convertCurrencyHistorical } from "@/lib/exchangeRates";
 
 // Define a schema for updating a transaction, including the ID
 const UpdateTransactionSchema = CreateTransactionSchema.extend({
@@ -27,8 +28,16 @@ export async function UpdateTransaction(form: UpdateTransactionSchemaType) {
     redirect("/sign-in");
   }
 
-  const { id, amount, category, date, description, type } = parsedBody.data;
+  const { id, amount, category, date, description, type, originalAmount, originalCurrency } = parsedBody.data;
 
+  // Get user's current currency setting
+  const userSettings = await prisma.userSettings.findUnique({
+    where: { userId: user.id },
+  });
+
+  if (!userSettings) {
+    throw new Error("User settings not found");
+  }
   // Fetch the original transaction to compare changes
   const originalTransaction = await prisma.transaction.findUnique({
     where: {
@@ -41,6 +50,26 @@ export async function UpdateTransaction(form: UpdateTransactionSchemaType) {
     throw new Error("Transaction not found or unauthorized");
   }
 
+  // Determine final original amount and currency
+  const finalOriginalAmount = originalAmount || amount;
+  const finalOriginalCurrency = originalCurrency || originalTransaction.originalCurrency || userSettings.currency;
+
+  // Convert amount to user's default currency if needed
+  let finalAmount = amount;
+  if (finalOriginalCurrency !== userSettings.currency) {
+    try {
+      finalAmount = await convertCurrencyHistorical(
+        finalOriginalAmount,
+        finalOriginalCurrency,
+        userSettings.currency,
+        date
+      );
+    } catch (error) {
+      console.error("Currency conversion failed:", error);
+      // If conversion fails, use original amount
+      finalAmount = finalOriginalAmount;
+    }
+  }
   // Fetch category info for the new category
   const newCategoryRow = await prisma.category.findFirst({
     where: { userId: user.id, name: category },
@@ -64,7 +93,7 @@ export async function UpdateTransaction(form: UpdateTransactionSchemaType) {
       originalLocalMonth !== newLocalMonth ||
       originalLocalYear !== newLocalYear ||
       originalTransaction.type !== type ||
-      originalTransaction.amount !== amount
+      originalTransaction.amount !== finalAmount
     ) {
       // Decrement original values from original month history
       await tx.monthHistory.upsert({
@@ -129,12 +158,14 @@ export async function UpdateTransaction(form: UpdateTransactionSchemaType) {
     await tx.transaction.update({
       where: { id, userId: user.id },
       data: {
-        amount,
+        amount: finalAmount,
         date,
         description: description || "",
         type,
         category: newCategoryRow.name,
         categoryIcon: newCategoryRow.icon,
+        originalAmount: finalOriginalAmount,
+        originalCurrency: finalOriginalCurrency,
       },
     });
 
@@ -154,14 +185,14 @@ export async function UpdateTransaction(form: UpdateTransactionSchemaType) {
         day: newLocalDay,
         month: newLocalMonth,
         year: newLocalYear,
-        income: type === "income" ? amount : 0,
-        expense: type === "expense" ? amount : 0,
-        savings: type === "savings" ? amount : 0,
+        income: type === "income" ? finalAmount : 0,
+        expense: type === "expense" ? finalAmount : 0,
+        savings: type === "savings" ? finalAmount : 0,
       },
       update: {
-        income: { increment: type === "income" ? amount : 0 },
-        expense: { increment: type === "expense" ? amount : 0 },
-        savings: { increment: type === "savings" ? amount : 0 },
+        income: { increment: type === "income" ? finalAmount : 0 },
+        expense: { increment: type === "expense" ? finalAmount : 0 },
+        savings: { increment: type === "savings" ? finalAmount : 0 },
       },
     });
 
@@ -177,14 +208,14 @@ export async function UpdateTransaction(form: UpdateTransactionSchemaType) {
         userId: user.id,
         month: newLocalMonth,
         year: newLocalYear,
-        income: type === "income" ? amount : 0,
-        expense: type === "expense" ? amount : 0,
-        savings: type === "savings" ? amount : 0,
+        income: type === "income" ? finalAmount : 0,
+        expense: type === "expense" ? finalAmount : 0,
+        savings: type === "savings" ? finalAmount : 0,
       },
       update: {
-        income: { increment: type === "income" ? amount : 0 },
-        expense: { increment: type === "expense" ? amount : 0 },
-        savings: { increment: type === "savings" ? amount : 0 },
+        income: { increment: type === "income" ? finalAmount : 0 },
+        expense: { increment: type === "expense" ? finalAmount : 0 },
+        savings: { increment: type === "savings" ? finalAmount : 0 },
       },
     });
 
@@ -194,10 +225,10 @@ export async function UpdateTransaction(form: UpdateTransactionSchemaType) {
         where: { userId: user.id },
         create: {
           userId: user.id,
-          totalSavings: amount,
+          totalSavings: finalAmount,
         },
         update: {
-          totalSavings: { increment: amount },
+          totalSavings: { increment: finalAmount },
         },
       });
     }
