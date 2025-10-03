@@ -35,7 +35,12 @@ export async function UpdateUserCurrency(currency: string) {
     console.log(`Found ${transactions.length} transactions to convert`);
 
     // Convert all transactions to the new currency
-    const convertedTransactions = [];
+    const convertedTransactions: Array<{
+      id: string;
+      newAmount: number;
+      originalAmount: number;
+      originalCurrency: string;
+    }> = [];
     for (const transaction of transactions) {
       try {
         // Use original currency if available, otherwise fall back to current user currency
