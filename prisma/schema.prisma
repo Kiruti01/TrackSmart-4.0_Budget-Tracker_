@@ -24,18 +24,18 @@ model Category {
 }
 
 model Transaction {
-  id           String   @id @default(uuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())  // fixed typo
-  amount       Float
-  description  String
-  date         DateTime
-  userId       String
-  type         String   @default("income")
-  category     String
-  categoryIcon String
-  originalAmount   Float
-  originalCurrency String
+  id               String   @id @default(uuid())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
+  amount           Float
+  description      String
+  date             DateTime
+  userId           String
+  type             String   @default("income")
+  category         String
+  categoryIcon     String
+  originalAmount   Float    @default(0)
+  originalCurrency String   @default("USD")
 }
 
 model MonthHistory {
@@ -47,7 +47,7 @@ model MonthHistory {
   expense Float
   savings Float
 
-    @@id([userId, day, month, year]) 
+  @@id([userId, day, month, year]) 
 }
 
 model YearHistory {
@@ -62,7 +62,7 @@ model YearHistory {
 }
 
 model CumulativeSavings {
-  userId       String  @id
-  totalSavings Float   @default(0)
-  updatedAt    DateTime @updatedAt  // auto-update on changes
+  userId       String   @id
+  totalSavings Float    @default(0)
+  updatedAt    DateTime @updatedAt
 }
