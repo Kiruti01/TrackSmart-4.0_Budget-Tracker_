@@ -19,7 +19,7 @@ import {
 import { Currencies, type Currency } from "@/lib/currencies";
 import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UpdateUserCurrency } from "@/app/wizard/_actions/userSettings";
 
 // Local type to match API response
@@ -31,6 +31,7 @@ export function CurrencyComboBox() {
   const [selectedOption, setSelectedOption] = React.useState<Currency | null>(
     null
   );
+  const queryClient = useQueryClient();
 
   // Fetch current user settings from API route
   const userSettings = useQuery<UserSettings>({
@@ -49,14 +50,20 @@ export function CurrencyComboBox() {
   const mutation = useMutation({
     mutationFn: UpdateUserCurrency,
     onSuccess: (data: UserSettings) => {
-      toast.success("Currency updated successfully 🎉");
+      toast.success("Currency updated successfully 🎉", { id: "update-currency" });
       setSelectedOption(
         Currencies.find((c) => c.value === data.currency) || null
       );
+
+      queryClient.invalidateQueries({ queryKey: ["userSettings"] });
+      queryClient.invalidateQueries({ queryKey: ["overview"] });
+      queryClient.invalidateQueries({ queryKey: ["cumulative-savings"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
     onError: (err) => {
       console.error(err);
-      toast.error("Could not update currency");
+      toast.error("Could not update currency", { id: "update-currency" });
     },
   });
 
