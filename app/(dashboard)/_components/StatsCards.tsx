@@ -100,14 +100,17 @@ function StatsCards({ from, to, userSettings }: Props) {
   //experiments
 
   const expensePercentage = parseFloat(((expense / income) * 100).toFixed(2));
-  const savingsPercentage = parseFloat(
-    ((currentPeriodSavings / income) * 100).toFixed(2)
-  );
-  const balancePercentage =
-    income > 0
-      ? parseFloat(((currentPeriodBalance / income) * 100).toFixed(2))
-      : 0;
-  const incomePercentage = 100;
+const savingsPercentage = parseFloat(
+  ((currentPeriodSavings / income) * 100).toFixed(2)
+);
+const investmentsPercentage = income > 0  // ← ADD THIS
+  ? parseFloat(((investedThisMonth / income) * 100).toFixed(2))
+  : 0;
+const balancePercentage =
+  income > 0
+    ? parseFloat(((currentPeriodBalance / income) * 100).toFixed(2))
+    : 0;
+const incomePercentage = 100;
 
   //
 
@@ -177,6 +180,7 @@ function StatsCards({ from, to, userSettings }: Props) {
           formatter={formatter}
           value={investedThisMonth}
           title="Investments This Month"
+          percentage={investmentsPercentage}
           icon={
             <TrendingUp className="h-12 w-12 items-center rounded-lg p-2 text-emerald-500 bg-emerald-400/10" />
           }
