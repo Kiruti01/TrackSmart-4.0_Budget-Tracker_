@@ -364,6 +364,15 @@ export async function CreateInvestmentCategory(
     throw new Error(error.message);
   }
 
+  await prisma.category.create({
+    data: {
+      name,
+      userId: user.id,
+      icon,
+      type: "investment",
+    },
+  });
+
   return category;
 }
 
@@ -396,6 +405,14 @@ export async function DeleteInvestmentCategory(categoryId: string) {
   if (deleteError) {
     throw new Error(deleteError.message);
   }
+
+  await prisma.category.deleteMany({
+    where: {
+      name: category.name,
+      userId: user.id,
+      type: "investment",
+    },
+  });
 
   return { success: true };
 }
