@@ -2,6 +2,8 @@
 
 import CreateCategoryDialog from "@/app/(dashboard)/_components/CreateCategoryDialog";
 import DeleteCategoryDialog from "@/app/(dashboard)/_components/DeleteCategoryDialog";
+import CreateInvestmentCategoryDialog from "@/app/(dashboard)/_components/CreateInvestmentCategoryDialog";
+import DeleteInvestmentCategoryDialog from "@/app/(dashboard)/_components/DeleteInvestmentCategoryDialog";
 
 import { CurrencyComboBox } from "@/components/CurrencyComboBox";
 import SkeletonWrapper from "@/components/SkeletonWrapper";
@@ -14,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { TransactionType } from "@/lib/types";
+import { TransactionType, InvestmentCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
 // Define Category type to match your backend data structure
 type Category = {
@@ -28,6 +30,7 @@ type Category = {
 
 import { useQuery } from "@tanstack/react-query";
 import {
+  Briefcase,
   Landmark,
   PlusSquare,
   TrashIcon,
@@ -66,6 +69,7 @@ function page() {
         <CategoryList type="income" />
         <CategoryList type="expense" />
         <CategoryList type="savings" />
+        <InvestmentCategoryList />
       </div>
     </>
   );
@@ -180,6 +184,108 @@ function CategoryCard({ category }: { category: Category }) {
           </Button>
         }
       />
+    </div>
+  );
+}
+
+function InvestmentCategoryList() {
+  const categoriesQuery = useQuery({
+    queryKey: ["investment-categories"],
+    queryFn: () =>
+      fetch("/api/investment-categories").then((res) => res.json()),
+  });
+
+  const dataAvailable =
+    categoriesQuery.data && categoriesQuery.data.length > 0;
+
+  return (
+    <SkeletonWrapper isLoading={categoriesQuery.isLoading}>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-12 w-12 items-center rounded-lg bg-emerald-400/10 p-2 text-emerald-500" />
+              <div>
+                Investment categories
+                <div className="text-sm text-muted-foreground">
+                  Sorted by name
+                </div>
+              </div>
+            </div>
+
+            <CreateInvestmentCategoryDialog
+              successCallback={() => categoriesQuery.refetch()}
+              trigger={
+                <Button className="gap-2 text-sm">
+                  <PlusSquare className="h-4 w-4" />
+                  Create category
+                </Button>
+              }
+            />
+          </CardTitle>
+        </CardHeader>
+        <Separator />
+        {!dataAvailable && (
+          <div className="flex h-40 w-full flex-col items-center justify-center">
+            <p>
+              No <span className="m-1 text-emerald-500">investment</span>{" "}
+              categories yet
+            </p>
+
+            <p className="text-sm text-muted-foreground">
+              Create one to get started
+            </p>
+          </div>
+        )}
+        {dataAvailable && (
+          <div className="grid grid-flow-row gap-2 p-2 sm:grid-flow-row sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {categoriesQuery.data.map((category: InvestmentCategory) => (
+              <InvestmentCategoryCard category={category} key={category.id} />
+            ))}
+          </div>
+        )}
+      </Card>
+    </SkeletonWrapper>
+  );
+}
+
+function InvestmentCategoryCard({
+  category,
+}: {
+  category: InvestmentCategory;
+}) {
+  const isSystemDefault = category.isSystemDefault;
+
+  return (
+    <div className="flex border-separate flex-col justify-between rounded-md border shadow-md shadow-black/[0.1] dark:shadow-white/[0.1]">
+      <div className="flex flex-col items-center gap-2 p-4">
+        <span className="text-3xl" role="img">
+          {category.icon}
+        </span>
+        <span>{category.name}</span>
+        {isSystemDefault && (
+          <span className="text-xs text-muted-foreground">System Default</span>
+        )}
+      </div>
+      {!isSystemDefault && (
+        <DeleteInvestmentCategoryDialog
+          category={category}
+          trigger={
+            <Button
+              className="flex w-full border-separate items-center gap-2 rounded-t-none text-muted-foreground hover:bg-red-500/20"
+              variant={"secondary"}
+            >
+              <TrashIcon className="h-4 w-4" />
+              Remove
+            </Button>
+          }
+        />
+      )}
+      {isSystemDefault && (
+        <div className="p-3 text-center text-xs text-muted-foreground">
+          Cannot delete system category
+        </div>
+      )}
     </div>
   );
 }

@@ -195,3 +195,31 @@ export async function CreateInvestmentCategory(
 
   return category;
 }
+
+export async function DeleteInvestmentCategory(categoryId: string) {
+  const user = await currentUser();
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  const category = await prisma.investmentCategory.findFirst({
+    where: {
+      id: categoryId,
+      userId: user.id,
+      isSystemDefault: false,
+    },
+  });
+
+  if (!category) {
+    throw new Error("Category not found or cannot be deleted");
+  }
+
+  await prisma.investmentCategory.delete({
+    where: {
+      id: categoryId,
+      userId: user.id,
+    },
+  });
+
+  return { success: true };
+}
