@@ -75,11 +75,13 @@ function CreateInvestmentDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: categories = [] } = useQuery<any[]>({
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<any[]>({
     queryKey: ["investment-categories"],
     queryFn: () =>
       fetch("/api/investment-categories").then((res) => res.json()),
   });
+
+  console.log("Categories:", categories);
 
   const { mutate, isPending } = useMutation({
     mutationFn: CreateInvestment,
@@ -163,14 +165,20 @@ function CreateInvestmentDialog({ trigger }: Props) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          <span className="flex items-center gap-2">
-                            <span>{cat.icon}</span>
-                            <span>{cat.name}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
+                      {categoriesLoading ? (
+                        <div className="p-2 text-sm text-muted-foreground">Loading...</div>
+                      ) : categories.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">No categories found</div>
+                      ) : (
+                        categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <span className="flex items-center gap-2">
+                              <span>{cat.icon}</span>
+                              <span>{cat.name}</span>
+                            </span>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

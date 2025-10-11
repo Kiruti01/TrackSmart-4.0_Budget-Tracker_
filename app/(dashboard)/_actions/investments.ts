@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import { getSupabaseClient } from "@/lib/supabase";
 import {
   CreateInvestmentSchema,
   CreateInvestmentSchemaType,
@@ -39,25 +39,32 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
   const finalCurrentAmount = currentAmount || initialAmount;
   const finalCurrentExchangeRate = currentExchangeRate || exchangeRate;
   const currentValueKes = finalCurrentAmount * finalCurrentExchangeRate;
+  const supabase = getSupabaseClient();
 
-  const investment = await prisma.investment.create({
-    data: {
-      userId: user.id,
+  const { data: investment, error } = await supabase
+    .from("investments")
+    .insert({
+      user_id: user.id,
       name,
-      categoryId,
+      category_id: categoryId,
       currency,
-      initialAmount,
-      initialExchangeRate: exchangeRate,
-      initialAmountKes,
-      currentAmount: finalCurrentAmount,
-      currentExchangeRate: finalCurrentExchangeRate,
-      currentValueKes,
-      totalInvested: initialAmount,
-      dateInvested,
+      initial_amount: initialAmount,
+      initial_exchange_rate: exchangeRate,
+      initial_amount_kes: initialAmountKes,
+      current_amount: finalCurrentAmount,
+      current_exchange_rate: finalCurrentExchangeRate,
+      current_value_kes: currentValueKes,
+      total_invested: initialAmount,
+      date_invested: dateInvested,
       notes: notes || null,
-      lastUpdated: new Date(),
-    },
-  });
+      last_updated: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   return investment;
 }
@@ -85,23 +92,25 @@ export async function UpdateInvestmentValue(
     notes,
   } = parsedBody.data;
 
-  const investment = await prisma.investment.findFirst({
-    where: {
-      id: investmentId,
-      userId: user.id,
-    },
-  });
+  const supabase = getSupabaseClient();
 
-  if (!investment) {
+  const { data: investment, error: fetchError } = await supabase
+    .from("investments")
+    .select("*")
+    .eq("id", investmentId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !investment) {
     throw new Error("Investment not found");
   }
 
-  const previousAmount = investment.currentAmount;
-  const previousExchangeRate = investment.currentExchangeRate;
-  const previousValueKes = investment.currentValueKes;
+  const previousAmount = investment.current_amount;
+  const previousExchangeRate = investment.current_exchange_rate;
+  const previousValueKes = investment.current_value_kes;
 
   let finalNewAmount = newAmount;
-  let finalTotalInvested = investment.totalInvested;
+  let finalTotalInvested = investment.total_invested;
 
   if (updateType === "capital_addition" && additionalCapital) {
     finalTotalInvested += additionalCapital;
@@ -116,39 +125,44 @@ export async function UpdateInvestmentValue(
   const percentageChangeKes =
     previousValueKes > 0 ? (gainLossKes / previousValueKes) * 100 : 0;
 
-  await prisma.$transaction([
-    prisma.investment.update({
-      where: {
-        id: investmentId,
-      },
-      data: {
-        currentAmount: finalNewAmount,
-        currentExchangeRate: exchangeRate,
-        currentValueKes: newValueKes,
-        totalInvested: finalTotalInvested,
-        lastUpdated: new Date(),
-      },
-    }),
-    prisma.investmentUpdate.create({
-      data: {
-        investmentId,
-        updateType,
-        previousAmount,
-        newAmount: finalNewAmount,
-        previousExchangeRate,
-        newExchangeRate: exchangeRate,
-        previousValueKes,
-        newValueKes,
-        additionalCapital: additionalCapital || null,
-        gainLossCurrency,
-        gainLossKes,
-        percentageChangeCurrency,
-        percentageChangeKes,
-        updateDate,
-        notes: notes || null,
-      },
-    }),
-  ]);
+  const { error: updateError } = await supabase
+    .from("investments")
+    .update({
+      current_amount: finalNewAmount,
+      current_exchange_rate: exchangeRate,
+      current_value_kes: newValueKes,
+      total_invested: finalTotalInvested,
+      last_updated: new Date().toISOString(),
+    })
+    .eq("id", investmentId);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  const { error: insertError } = await supabase
+    .from("investment_updates")
+    .insert({
+      investment_id: investmentId,
+      update_type: updateType,
+      previous_amount: previousAmount,
+      new_amount: finalNewAmount,
+      previous_exchange_rate: previousExchangeRate,
+      new_exchange_rate: exchangeRate,
+      previous_value_kes: previousValueKes,
+      new_value_kes: newValueKes,
+      additional_capital: additionalCapital || null,
+      gain_loss_currency: gainLossCurrency,
+      gain_loss_kes: gainLossKes,
+      percentage_change_currency: percentageChangeCurrency,
+      percentage_change_kes: percentageChangeKes,
+      update_date: updateDate,
+      notes: notes || null,
+    });
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
 
   return { success: true };
 }
@@ -159,12 +173,17 @@ export async function DeleteInvestment(investmentId: string) {
     redirect("/sign-in");
   }
 
-  await prisma.investment.delete({
-    where: {
-      id: investmentId,
-      userId: user.id,
-    },
-  });
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase
+    .from("investments")
+    .delete()
+    .eq("id", investmentId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   return { success: true };
 }
@@ -183,15 +202,22 @@ export async function CreateInvestmentCategory(
   }
 
   const { name, icon } = parsedBody.data;
+  const supabase = getSupabaseClient();
 
-  const category = await prisma.investmentCategory.create({
-    data: {
-      userId: user.id,
+  const { data: category, error } = await supabase
+    .from("investment_categories")
+    .insert({
+      user_id: user.id,
       name,
       icon,
-      isSystemDefault: false,
-    },
-  });
+      is_system_default: false,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   return category;
 }
@@ -202,24 +228,29 @@ export async function DeleteInvestmentCategory(categoryId: string) {
     redirect("/sign-in");
   }
 
-  const category = await prisma.investmentCategory.findFirst({
-    where: {
-      id: categoryId,
-      userId: user.id,
-      isSystemDefault: false,
-    },
-  });
+  const supabase = getSupabaseClient();
 
-  if (!category) {
+  const { data: category, error: fetchError } = await supabase
+    .from("investment_categories")
+    .select()
+    .eq("id", categoryId)
+    .eq("user_id", user.id)
+    .eq("is_system_default", false)
+    .single();
+
+  if (fetchError || !category) {
     throw new Error("Category not found or cannot be deleted");
   }
 
-  await prisma.investmentCategory.delete({
-    where: {
-      id: categoryId,
-      userId: user.id,
-    },
-  });
+  const { error: deleteError } = await supabase
+    .from("investment_categories")
+    .delete()
+    .eq("id", categoryId)
+    .eq("user_id", user.id);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
 
   return { success: true };
 }
