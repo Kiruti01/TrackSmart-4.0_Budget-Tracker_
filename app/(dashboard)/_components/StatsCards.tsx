@@ -112,7 +112,7 @@ function StatsCards({ from, to, userSettings }: Props) {
   //
 
   return (
-    <div className="relative grid w-full gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <div className="relative grid w-full gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <SkeletonWrapper isLoading={statsQuery.isFetching}>
         <StatCard
           formatter={formatter}
@@ -175,8 +175,19 @@ function StatsCards({ from, to, userSettings }: Props) {
       <SkeletonWrapper isLoading={investmentsQuery.isFetching}>
         <StatCard
           formatter={formatter}
+          value={investedThisMonth}
+          title="Investments This Month"
+          icon={
+            <TrendingUp className="h-12 w-12 items-center rounded-lg p-2 text-emerald-500 bg-emerald-400/10" />
+          }
+        />
+      </SkeletonWrapper>
+
+      <SkeletonWrapper isLoading={investmentsQuery.isFetching}>
+        <StatCard
+          formatter={formatter}
           value={totalInvestmentsValue}
-          title="Investments Value"
+          title="Total Investments"
           subtitle={`Gain: ${totalInvestmentGain >= 0 ? "+" : ""}${formatter.format(totalInvestmentGain)} (${totalInvestmentGainPercentage >= 0 ? "+" : ""}${totalInvestmentGainPercentage.toFixed(2)}%)`}
           subtitleColor={totalInvestmentGain >= 0 ? "text-emerald-500" : "text-red-500"}
           icon={

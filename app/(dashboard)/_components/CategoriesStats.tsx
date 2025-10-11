@@ -7,10 +7,9 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DateToUTCDate, GetFormatterForCurrency } from "@/lib/helpers";
 import { TransactionType } from "@/lib/types";
-// Define UserSettings type locally if not available from @prisma/client
+import InvestmentCategoriesChart from "./InvestmentCategoriesChart";
 type UserSettings = {
   currency: string;
-  // Add other properties as needed
 };
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo } from "react";
@@ -52,14 +51,11 @@ function CategoriesStats({ userSettings, from, to }: Props) {
           data={statsQuery.data || []}
         />
       </SkeletonWrapper>
-      <SkeletonWrapper isLoading={statsQuery.isFetching}>
-        <CategoriesCard
-          formatter={formatter}
-          type="savings"
-          data={statsQuery.data || []}
-          title="Monthly Savings"
-        />
-      </SkeletonWrapper>
+      <InvestmentCategoriesChart
+        userSettings={userSettings}
+        from={from}
+        to={to}
+      />
     </div>
   );
 }
