@@ -82,11 +82,11 @@ function StatsCards({ from, to, userSettings }: Props) {
 
   // Get investments data
   const totalInvestmentsValue =
-    investmentsQuery.data?.totalCurrentValueKes || 0;
-  const investedThisMonth = investmentsQuery.data?.investedThisMonth || 0;
-  const totalInvestmentGain = investmentsQuery.data?.totalGainKes || 0;
+    investmentsQuery.data?.totalCurrentValueKes ?? 0;
+  const investedThisMonth = investmentsQuery.data?.investedThisMonth ?? 0;
+  const totalInvestmentGain = investmentsQuery.data?.totalGainKes ?? 0;
   const totalInvestmentGainPercentage =
-    investmentsQuery.data?.totalGainPercentage || 0;
+    investmentsQuery.data?.totalGainPercentage ?? 0;
 
   // Calculate current period balance
   const currentPeriodBalance = income - expense - currentPeriodSavings;
