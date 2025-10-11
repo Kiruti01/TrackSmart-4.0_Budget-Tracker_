@@ -55,8 +55,8 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
     defaultValues: {
       investmentId: investment.id,
       updateType: "value_update",
-      newAmount: investment.current_amount,
-      exchangeRate: investment.current_exchange_rate,
+      newAmount: investment.currentAmount,
+      exchangeRate: investment.currentExchangeRate,
       updateDate: new Date(),
     },
   });
@@ -103,28 +103,28 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
   const exchangeRate = form.watch("exchangeRate");
   const additionalCapital = form.watch("additionalCapital");
 
-  const currentGainCurrency = investment.current_amount - investment.initial_amount;
+  const currentGainCurrency = investment.currentAmount - investment.initialAmount;
   const currentGainPercentage =
-    investment.initial_amount > 0
-      ? (currentGainCurrency / investment.initial_amount) * 100
+    investment.initialAmount > 0
+      ? (currentGainCurrency / investment.initialAmount) * 100
       : 0;
 
-  const currentGainKes = investment.current_value_kes - investment.initial_amount_kes;
+  const currentGainKes = investment.currentValueKes - investment.initialAmountKes;
   const currentGainPercentageKes =
-    investment.initial_amount_kes > 0
-      ? (currentGainKes / investment.initial_amount_kes) * 100
+    investment.initialAmountKes > 0
+      ? (currentGainKes / investment.initialAmountKes) * 100
       : 0;
 
   const newValueKes = newAmount && exchangeRate ? newAmount * exchangeRate : 0;
-  const changeCurrency = newAmount ? newAmount - investment.current_amount : 0;
+  const changeCurrency = newAmount ? newAmount - investment.currentAmount : 0;
   const changePercentageCurrency =
-    investment.current_amount > 0
-      ? (changeCurrency / investment.current_amount) * 100
+    investment.currentAmount > 0
+      ? (changeCurrency / investment.currentAmount) * 100
       : 0;
-  const changeKes = newValueKes - investment.current_value_kes;
+  const changeKes = newValueKes - investment.currentValueKes;
   const changePercentageKes =
-    investment.current_value_kes > 0
-      ? (changeKes / investment.current_value_kes) * 100
+    investment.currentValueKes > 0
+      ? (changeKes / investment.currentValueKes) * 100
       : 0;
 
   return (
@@ -146,19 +146,19 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
             <div>
               <p className="text-muted-foreground">Initial Amount</p>
               <p className="font-semibold">
-                {investment.initial_amount.toLocaleString()} {investment.currency}
+                {investment.initialAmount.toLocaleString()} {investment.currency}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground">Last Value</p>
               <p className="font-semibold">
-                {investment.current_amount.toLocaleString()} {investment.currency}
+                {investment.currentAmount.toLocaleString()} {investment.currency}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground">Last Value (KES)</p>
               <p className="font-semibold">
-                {investment.current_value_kes.toLocaleString("en-KE", {
+                {investment.currentValueKes.toLocaleString("en-KE", {
                   style: "currency",
                   currency: "KES",
                 })}
@@ -343,7 +343,7 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
                 {updateType === "capital_addition" && additionalCapital && (
                   <p className="text-sm">
                     New Total Invested:{" "}
-                    {(investment.total_invested + Number(additionalCapital)).toLocaleString()}{" "}
+                    {(investment.totalInvested + Number(additionalCapital)).toLocaleString()}{" "}
                     {investment.currency}
                   </p>
                 )}

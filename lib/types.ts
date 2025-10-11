@@ -6,49 +6,49 @@ export type UpdateType = "value_update" | "capital_addition";
 
 export interface InvestmentCategory {
   id: string;
-  user_id: string | null;
+  userId: string | null;
   name: string;
   icon: string;
-  is_system_default: boolean;
-  created_at: Date;
+  isSystemDefault: boolean;
+  createdAt: Date;
 }
 
 export interface Investment {
   id: string;
-  user_id: string;
+  userId: string;
   name: string;
-  category_id: string;
+  categoryId: string;
   currency: string;
-  initial_amount: number;
-  initial_exchange_rate: number;
-  initial_amount_kes: number;
-  current_amount: number;
-  current_exchange_rate: number;
-  current_value_kes: number;
-  total_invested: number;
-  date_invested: Date;
-  last_updated: Date;
+  initialAmount: number;
+  initialExchangeRate: number;
+  initialAmountKes: number;
+  currentAmount: number;
+  currentExchangeRate: number;
+  currentValueKes: number;
+  totalInvested: number;
+  dateInvested: Date;
+  lastUpdated: Date;
   notes: string | null;
-  created_at: Date;
+  createdAt: Date;
   category?: InvestmentCategory;
 }
 
 export interface InvestmentUpdate {
   id: string;
-  investment_id: string;
-  update_type: UpdateType;
-  previous_amount: number;
-  new_amount: number;
-  previous_exchange_rate: number;
-  new_exchange_rate: number;
-  previous_value_kes: number;
-  new_value_kes: number;
-  additional_capital: number | null;
-  gain_loss_currency: number;
-  gain_loss_kes: number;
-  percentage_change_currency: number;
-  percentage_change_kes: number;
-  update_date: Date;
+  investmentId: string;
+  updateType: UpdateType;
+  previousAmount: number;
+  newAmount: number;
+  previousExchangeRate: number;
+  newExchangeRate: number;
+  previousValueKes: number;
+  newValueKes: number;
+  additionalCapital: number | null;
+  gainLossCurrency: number;
+  gainLossKes: number;
+  percentageChangeCurrency: number;
+  percentageChangeKes: number;
+  updateDate: Date;
   notes: string | null;
-  created_at: Date;
+  createdAt: Date;
 }

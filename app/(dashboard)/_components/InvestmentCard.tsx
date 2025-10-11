@@ -13,16 +13,16 @@ interface Props {
 }
 
 function InvestmentCard({ investment }: Props) {
-  const gainCurrency = investment.current_amount - investment.initial_amount;
+  const gainCurrency = investment.currentAmount - investment.initialAmount;
   const gainPercentageCurrency =
-    investment.initial_amount > 0
-      ? (gainCurrency / investment.initial_amount) * 100
+    investment.initialAmount > 0
+      ? (gainCurrency / investment.initialAmount) * 100
       : 0;
 
-  const gainKes = investment.current_value_kes - investment.initial_amount_kes;
+  const gainKes = investment.currentValueKes - investment.initialAmountKes;
   const gainPercentageKes =
-    investment.initial_amount_kes > 0
-      ? (gainKes / investment.initial_amount_kes) * 100
+    investment.initialAmountKes > 0
+      ? (gainKes / investment.initialAmountKes) * 100
       : 0;
 
   const isKesOnly = investment.currency === "KES";
@@ -43,7 +43,7 @@ function InvestmentCard({ investment }: Props) {
             <div>
               <p className="text-sm text-muted-foreground">Current Value</p>
               <p className="text-2xl font-bold">
-                {investment.current_value_kes.toLocaleString("en-KE", {
+                {investment.currentValueKes.toLocaleString("en-KE", {
                   style: "currency",
                   currency: "KES",
                 })}
@@ -52,7 +52,7 @@ function InvestmentCard({ investment }: Props) {
             <div>
               <p className="text-sm text-muted-foreground">Invested</p>
               <p className="text-sm font-medium">
-                {investment.initial_amount_kes.toLocaleString("en-KE", {
+                {investment.initialAmountKes.toLocaleString("en-KE", {
                   style: "currency",
                   currency: "KES",
                 })}
@@ -93,7 +93,7 @@ function InvestmentCard({ investment }: Props) {
                 <div>
                   <p className="text-sm text-muted-foreground">Amount</p>
                   <p className="text-xl font-bold">
-                    {investment.current_amount.toLocaleString(undefined, {
+                    {investment.currentAmount.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 4,
                     })}{" "}
@@ -103,7 +103,7 @@ function InvestmentCard({ investment }: Props) {
                 <div>
                   <p className="text-sm text-muted-foreground">Invested</p>
                   <p className="text-sm">
-                    {investment.initial_amount.toLocaleString(undefined, {
+                    {investment.initialAmount.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 4,
                     })}{" "}
@@ -137,7 +137,7 @@ function InvestmentCard({ investment }: Props) {
                 <div>
                   <p className="text-sm text-muted-foreground">Current</p>
                   <p className="text-lg font-bold">
-                    {investment.current_value_kes.toLocaleString("en-KE", {
+                    {investment.currentValueKes.toLocaleString("en-KE", {
                       style: "currency",
                       currency: "KES",
                       minimumFractionDigits: 0,
@@ -148,7 +148,7 @@ function InvestmentCard({ investment }: Props) {
                 <div>
                   <p className="text-sm text-muted-foreground">Initial</p>
                   <p className="text-sm">
-                    {investment.initial_amount_kes.toLocaleString("en-KE", {
+                    {investment.initialAmountKes.toLocaleString("en-KE", {
                       style: "currency",
                       currency: "KES",
                       minimumFractionDigits: 0,
@@ -181,7 +181,7 @@ function InvestmentCard({ investment }: Props) {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Rate: {investment.current_exchange_rate.toLocaleString()} KES/
+                Rate: {investment.currentExchangeRate.toLocaleString()} KES/
                 {investment.currency}
               </p>
             </div>
@@ -191,7 +191,7 @@ function InvestmentCard({ investment }: Props) {
         <div className="pt-2 border-t">
           <p className="text-xs text-muted-foreground">
             Last updated:{" "}
-            {formatDistanceToNow(new Date(investment.last_updated), {
+            {formatDistanceToNow(new Date(investment.lastUpdated), {
               addSuffix: true,
             })}
           </p>

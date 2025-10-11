@@ -47,7 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { InvestmentCategory } from "@/lib/types";
+import { getCurrentExchangeRate } from "@/lib/exchangeRates";
 
 interface Props {
   trigger: ReactNode;
@@ -75,7 +75,7 @@ function CreateInvestmentDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: categories = [] } = useQuery<InvestmentCategory[]>({
+  const { data: categories = [] } = useQuery<any[]>({
     queryKey: ["investment-categories"],
     queryFn: () =>
       fetch("/api/investment-categories").then((res) => res.json()),
@@ -155,7 +155,7 @@ function CreateInvestmentDialog({ trigger }: Props) {
                   <FormLabel>Investment Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -186,13 +186,20 @@ function CreateInvestmentDialog({ trigger }: Props) {
                   <FormItem>
                     <FormLabel>Currency</FormLabel>
                     <Select
-                      onValueChange={(value) => {
+                      onValueChange={async (value) => {
                         field.onChange(value);
                         if (value === "KES") {
                           form.setValue("exchangeRate", 1.0);
+                        } else {
+                          try {
+                            const { rate } = await getCurrentExchangeRate(value, "KES");
+                            form.setValue("exchangeRate", rate);
+                          } catch (error) {
+                            console.error("Failed to fetch exchange rate:", error);
+                          }
                         }
                       }}
-                      defaultValue={field.value}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
