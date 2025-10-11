@@ -105,18 +105,18 @@ export async function UpdateInvestmentValue(
     throw new Error("Investment not found");
   }
 
-  const previousAmount = investment.current_amount;
-  const previousExchangeRate = investment.current_exchange_rate;
-  const previousValueKes = investment.current_value_kes;
+  const previousAmount = Number(investment.current_amount);
+  const previousExchangeRate = Number(investment.current_exchange_rate);
+  const previousValueKes = Number(investment.current_value_kes);
 
-  let finalNewAmount = newAmount;
-  let finalTotalInvested = investment.total_invested;
+  let finalNewAmount = Number(newAmount);
+  let finalTotalInvested = Number(investment.total_invested);
 
   if (updateType === "capital_addition" && additionalCapital) {
-    finalTotalInvested += additionalCapital;
+    finalTotalInvested += Number(additionalCapital);
   }
 
-  const newValueKes = finalNewAmount * exchangeRate;
+  const newValueKes = finalNewAmount * Number(exchangeRate);
 
   const gainLossCurrency = finalNewAmount - previousAmount;
   const gainLossKes = newValueKes - previousValueKes;
