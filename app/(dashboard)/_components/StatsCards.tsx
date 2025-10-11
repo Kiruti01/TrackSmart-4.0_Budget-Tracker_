@@ -88,8 +88,8 @@ function StatsCards({ from, to, userSettings }: Props) {
   const totalInvestmentGainPercentage =
     investmentsQuery.data?.totalGainPercentage ?? 0;
 
-  // Calculate current period balance
-  const currentPeriodBalance = income - expense - currentPeriodSavings;
+  // Calculate current period balance (subtract investments made this month)
+  const currentPeriodBalance = income - expense - currentPeriodSavings - investedThisMonth;
 
   // Calculate total balance including carry-over from previous periods
   const balance = totalBalanceBeforePeriod + currentPeriodBalance;
