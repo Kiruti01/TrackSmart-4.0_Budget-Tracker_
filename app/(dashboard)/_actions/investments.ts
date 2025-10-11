@@ -11,6 +11,7 @@ import {
 } from "@/schema/investment";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
 
 export async function CreateInvestment(form: CreateInvestmentSchemaType) {
   const parsedBody = CreateInvestmentSchema.safeParse(form);
@@ -65,6 +66,76 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
   if (error) {
     throw new Error(error.message);
   }
+
+  const { data: categoryData } = await supabase
+    .from("investment_categories")
+    .select("name, icon")
+    .eq("id", categoryId)
+    .single();
+
+  await prisma.transaction.create({
+    data: {
+      userId: user.id,
+      type: "investment",
+      category: categoryData?.name || "Investment",
+      categoryIcon: categoryData?.icon || "💰",
+      description: `Investment: ${name}`,
+      amount: initialAmountKes,
+      date: new Date(dateInvested),
+    },
+  });
+
+  const dateObj = new Date(dateInvested);
+  await prisma.$transaction([
+    prisma.monthHistory.upsert({
+      where: {
+        userId_day_month_year: {
+          userId: user.id,
+          day: dateObj.getUTCDate(),
+          month: dateObj.getUTCMonth(),
+          year: dateObj.getUTCFullYear(),
+        },
+      },
+      create: {
+        userId: user.id,
+        day: dateObj.getUTCDate(),
+        month: dateObj.getUTCMonth(),
+        year: dateObj.getUTCFullYear(),
+        investment: initialAmountKes,
+        income: 0,
+        expense: 0,
+        savings: 0,
+      },
+      update: {
+        investment: {
+          increment: initialAmountKes,
+        },
+      },
+    }),
+    prisma.yearHistory.upsert({
+      where: {
+        month_year_userId: {
+          userId: user.id,
+          month: dateObj.getUTCMonth(),
+          year: dateObj.getUTCFullYear(),
+        },
+      },
+      create: {
+        userId: user.id,
+        month: dateObj.getUTCMonth(),
+        year: dateObj.getUTCFullYear(),
+        investment: initialAmountKes,
+        income: 0,
+        expense: 0,
+        savings: 0,
+      },
+      update: {
+        investment: {
+          increment: initialAmountKes,
+        },
+      },
+    }),
+  ]);
 
   return investment;
 }
@@ -162,6 +233,80 @@ export async function UpdateInvestmentValue(
 
   if (insertError) {
     throw new Error(insertError.message);
+  }
+
+  if (updateType === "capital_addition" && additionalCapital) {
+    const additionalCapitalKes = Number(additionalCapital) * Number(exchangeRate);
+
+    const { data: categoryData } = await supabase
+      .from("investment_categories")
+      .select("name, icon")
+      .eq("id", investment.category_id)
+      .single();
+
+    await prisma.transaction.create({
+      data: {
+        userId: user.id,
+        type: "investment",
+        category: categoryData?.name || "Investment",
+        categoryIcon: categoryData?.icon || "💰",
+        description: `Capital Addition: ${investment.name}`,
+        amount: additionalCapitalKes,
+        date: new Date(updateDate),
+      },
+    });
+
+    const dateObj = new Date(updateDate);
+    await prisma.$transaction([
+      prisma.monthHistory.upsert({
+        where: {
+          userId_day_month_year: {
+            userId: user.id,
+            day: dateObj.getUTCDate(),
+            month: dateObj.getUTCMonth(),
+            year: dateObj.getUTCFullYear(),
+          },
+        },
+        create: {
+          userId: user.id,
+          day: dateObj.getUTCDate(),
+          month: dateObj.getUTCMonth(),
+          year: dateObj.getUTCFullYear(),
+          investment: additionalCapitalKes,
+          income: 0,
+          expense: 0,
+          savings: 0,
+        },
+        update: {
+          investment: {
+            increment: additionalCapitalKes,
+          },
+        },
+      }),
+      prisma.yearHistory.upsert({
+        where: {
+          month_year_userId: {
+            userId: user.id,
+            month: dateObj.getUTCMonth(),
+            year: dateObj.getUTCFullYear(),
+          },
+        },
+        create: {
+          userId: user.id,
+          month: dateObj.getUTCMonth(),
+          year: dateObj.getUTCFullYear(),
+          investment: additionalCapitalKes,
+          income: 0,
+          expense: 0,
+          savings: 0,
+        },
+        update: {
+          investment: {
+            increment: additionalCapitalKes,
+          },
+        },
+      }),
+    ]);
   }
 
   return { success: true };

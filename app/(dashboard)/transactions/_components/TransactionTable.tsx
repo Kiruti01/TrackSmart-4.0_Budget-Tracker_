@@ -108,7 +108,8 @@ const columns: ColumnDef<TransactionHistoryRow>[] = [
           row.original.type === "income" &&
             "bg-emerald-400/10 text-emerald-500",
           row.original.type === "expense" && "bg-red-400/10 text-red-500",
-          row.original.type === "savings" && "bg-blue-400/10 text-blue-500"
+          row.original.type === "savings" && "bg-blue-400/10 text-blue-500",
+          row.original.type === "investment" && "bg-amber-400/10 text-amber-500"
         )}
       >
         {row.original.type}
@@ -199,6 +200,7 @@ function TransactionTable({ from, to }: Props) {
                 { label: "Income", value: "income" },
                 { label: "Expense", value: "expense" },
                 { label: "Savings", value: "savings" },
+                { label: "Investment", value: "investment" },
               ]}
             />
           )}

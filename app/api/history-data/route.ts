@@ -64,6 +64,7 @@ type HistoryData = {
   expense: number;
   income: number;
   savings: number;
+  investment: number;
   year: number;
   month: number;
   day?: number;
@@ -80,6 +81,7 @@ async function getYearHistoryData(userId: string, year: number) {
       expense: true,
       income: true,
       savings: true,
+      investment: true,
     },
     orderBy: [
       {
@@ -96,12 +98,14 @@ async function getYearHistoryData(userId: string, year: number) {
     let expense = 0;
     let income = 0;
     let savings = 0;
+    let investment = 0;
 
     const month = result.find((row: { month: number }) => row.month === i);
     if (month) {
       expense = month._sum.expense || 0;
       income = month._sum.income || 0;
       savings = month._sum.savings || 0;
+      investment = month._sum.investment || 0;
     }
 
     history.push({
@@ -110,6 +114,7 @@ async function getYearHistoryData(userId: string, year: number) {
       expense,
       income,
       savings,
+      investment,
     });
   }
 
@@ -132,6 +137,7 @@ async function getMonthHistoryData(
       expense: true,
       income: true,
       savings: true,
+      investment: true,
     },
     orderBy: [
       {
@@ -152,18 +158,21 @@ async function getMonthHistoryData(
     let expense = 0;
     let income = 0;
     let savings = 0;
+    let investment = 0;
 
     const day = result.find((row: { day: number }) => row.day === i);
     if (day) {
       expense = day._sum.expense || 0;
       income = day._sum.income || 0;
       savings = day._sum.savings || 0;
+      investment = day._sum.investment || 0;
     }
 
     history.push({
       expense,
       income,
       savings,
+      investment,
       year,
       month,
       day: i,

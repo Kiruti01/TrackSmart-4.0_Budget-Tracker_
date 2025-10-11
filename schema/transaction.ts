@@ -9,6 +9,7 @@ export const CreateTransactionSchema = z.object({
     z.literal("income"),
     z.literal("expense"),
     z.literal("savings"),
+    z.literal("investment"),
   ]),
   originalAmount: z.coerce.number().positive().multipleOf(0.01).optional(),
   originalCurrency: z.string().optional(),

@@ -39,24 +39,26 @@ model Transaction {
 }
 
 model MonthHistory {
-  userId  String
-  day     Int
-  month   Int
-  year    Int
-  income  Float
-  expense Float
-  savings Float
+  userId     String
+  day        Int
+  month      Int
+  year       Int
+  income     Float
+  expense    Float
+  savings    Float
+  investment Float @default(0)
 
-  @@id([userId, day, month, year]) 
+  @@id([userId, day, month, year])
 }
 
 model YearHistory {
-  userId  String
-  month   Int
-  year    Int
-  income  Float
-  expense Float
-  savings Float
+  userId     String
+  month      Int
+  year       Int
+  income     Float
+  expense    Float
+  savings    Float
+  investment Float @default(0)
 
   @@id([month, year, userId])
 }

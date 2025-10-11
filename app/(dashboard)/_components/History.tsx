@@ -101,7 +101,7 @@ function History({ userSettings }: { userSettings: { currency: string } }) {
               setTimeframe={setTimeframe}
             />
 
-            <div className="flex h-10 gap-2">
+            <div className="flex h-10 gap-2 flex-wrap">
               <Badge
                 variant={"outline"}
                 className="flex items-center gap-2 text-sm"
@@ -122,6 +122,13 @@ function History({ userSettings }: { userSettings: { currency: string } }) {
               >
                 <div className="h-4 w-2 rounded-full bg-blue-500"></div>
                 Savings
+              </Badge>
+              <Badge
+                variant={"outline"}
+                className="flex items-center gap-2 text-sm"
+              >
+                <div className="h-4 w-2 rounded-full bg-amber-500"></div>
+                Investment
               </Badge>
             </div>
           </CardTitle>
@@ -177,6 +184,18 @@ function History({ userSettings }: { userSettings: { currency: string } }) {
                         stopOpacity={"0"}
                       />
                     </linearGradient>
+                    <linearGradient id="investmentBar" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset={"0"}
+                        stopColor="#f59e0b"
+                        stopOpacity={"1"}
+                      />
+                      <stop
+                        offset={"1"}
+                        stopColor="#f59e0b"
+                        stopOpacity={"0"}
+                      />
+                    </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="5 5"
@@ -229,6 +248,13 @@ function History({ userSettings }: { userSettings: { currency: string } }) {
                     radius={4}
                     className="cursor-pointer"
                   />
+                  <Bar
+                    dataKey={"investment"}
+                    label="Investment"
+                    fill="url(#investmentBar)"
+                    radius={4}
+                    className="cursor-pointer"
+                  />
                   <Tooltip
                     cursor={{ opacity: 0.1 }}
                     content={(props) => (
@@ -275,10 +301,10 @@ function CustomTooltip({
   if (!active || !payload || payload.length === 0) return null;
 
   const data = payload[0].payload;
-  const { expense, income, savings } = data;
+  const { expense, income, savings, investment = 0 } = data;
 
-  // Calculate period balance including carry-over
-  const periodBalance = balanceBeforePeriod + income - expense - savings;
+  // Calculate period balance including carry-over and investments
+  const periodBalance = balanceBeforePeriod + income - expense - savings - investment;
 
   return (
     <div className="min-w-[300px] rounded border bg-background p-4">
@@ -302,6 +328,13 @@ function CustomTooltip({
         value={savings}
         bgColor="bg-blue-500"
         textColor="text-blue-500"
+      />
+      <TooltipRow
+        formatter={formatter}
+        label="Investment"
+        value={investment}
+        bgColor="bg-amber-500"
+        textColor="text-amber-500"
       />
       <TooltipRow
         formatter={formatter}

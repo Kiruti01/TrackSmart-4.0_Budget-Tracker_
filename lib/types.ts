@@ -1,4 +1,4 @@
-export type TransactionType = "income" | "expense" | "savings";
+export type TransactionType = "income" | "expense" | "savings" | "investment";
 export type Timeframe = "month" | "year";
 export type Period = { year: number; month: number };
 
