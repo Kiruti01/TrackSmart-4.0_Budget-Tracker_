@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const { data: categories, error } = await supabase
     .from("investment_categories")
     .select("*")
-    .or(`is_system_default.eq.true,user_id.eq.${user.id}`)
+    .eq("is_system_default", true)
     .order("name", { ascending: true });
 
   if (error) {
