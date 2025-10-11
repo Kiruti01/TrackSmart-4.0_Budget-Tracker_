@@ -71,11 +71,11 @@ model CumulativeSavings {
 
 model InvestmentCategory {
   id              String       @id @default(uuid())
-  userId          String?
+  userId          String?      @map("user_id")
   name            String
   icon            String       @default("📝")
-  isSystemDefault Boolean      @default(false)
-  createdAt       DateTime     @default(now())
+  isSystemDefault Boolean      @default(false) @map("is_system_default")
+  createdAt       DateTime     @default(now()) @map("created_at")
   investments     Investment[]
 
   @@map("investment_categories")
@@ -83,21 +83,21 @@ model InvestmentCategory {
 
 model Investment {
   id                    String             @id @default(uuid())
-  userId                String
+  userId                String             @map("user_id")
   name                  String
-  categoryId            String
+  categoryId            String             @map("category_id")
   currency              String             @default("KES")
-  initialAmount         Float
-  initialExchangeRate   Float              @default(1.0)
-  initialAmountKes      Float
-  currentAmount         Float
-  currentExchangeRate   Float              @default(1.0)
-  currentValueKes       Float
-  totalInvested         Float
-  dateInvested          DateTime
-  lastUpdated           DateTime           @default(now())
+  initialAmount         Float              @map("initial_amount")
+  initialExchangeRate   Float              @default(1.0) @map("initial_exchange_rate")
+  initialAmountKes      Float              @map("initial_amount_kes")
+  currentAmount         Float              @map("current_amount")
+  currentExchangeRate   Float              @default(1.0) @map("current_exchange_rate")
+  currentValueKes       Float              @map("current_value_kes")
+  totalInvested         Float              @map("total_invested")
+  dateInvested          DateTime           @map("date_invested") @db.Date
+  lastUpdated           DateTime           @default(now()) @map("last_updated")
   notes                 String?
-  createdAt             DateTime           @default(now())
+  createdAt             DateTime           @default(now()) @map("created_at")
   category              InvestmentCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   updates               InvestmentUpdate[]
 
@@ -109,22 +109,22 @@ model Investment {
 
 model InvestmentUpdate {
   id                       String     @id @default(uuid())
-  investmentId             String
-  updateType               String
-  previousAmount           Float
-  newAmount                Float
-  previousExchangeRate     Float
-  newExchangeRate          Float
-  previousValueKes         Float
-  newValueKes              Float
-  additionalCapital        Float?
-  gainLossCurrency         Float
-  gainLossKes              Float
-  percentageChangeCurrency Float
-  percentageChangeKes      Float
-  updateDate               DateTime
+  investmentId             String     @map("investment_id")
+  updateType               String     @map("update_type")
+  previousAmount           Float      @map("previous_amount")
+  newAmount                Float      @map("new_amount")
+  previousExchangeRate     Float      @map("previous_exchange_rate")
+  newExchangeRate          Float      @map("new_exchange_rate")
+  previousValueKes         Float      @map("previous_value_kes")
+  newValueKes              Float      @map("new_value_kes")
+  additionalCapital        Float?     @map("additional_capital")
+  gainLossCurrency         Float      @map("gain_loss_currency")
+  gainLossKes              Float      @map("gain_loss_kes")
+  percentageChangeCurrency Float      @map("percentage_change_currency")
+  percentageChangeKes      Float      @map("percentage_change_kes")
+  updateDate               DateTime   @map("update_date") @db.Date
   notes                    String?
-  createdAt                DateTime   @default(now())
+  createdAt                DateTime   @default(now()) @map("created_at")
   investment               Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
 
   @@index([investmentId])
