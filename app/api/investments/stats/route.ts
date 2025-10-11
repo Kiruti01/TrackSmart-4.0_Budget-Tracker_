@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { startOfMonth, endOfMonth } from "date-fns";
@@ -16,17 +16,25 @@ export async function GET(request: Request) {
   const fromDate = from ? new Date(from) : startOfMonth(new Date());
   const toDate = to ? new Date(to) : endOfMonth(new Date());
 
-  const investments = await prisma.investment.findMany({
-    where: {
-      userId: user.id,
-    },
-  });
+  const supabase = getSupabaseServiceClient();
+
+  const { data: investments, error } = await supabase
+    .from("investments")
+    .select("*")
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error fetching investments stats:", error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+
+  const investmentsList = investments || [];
 
   const totalCurrentValueKes =
-    investments.reduce((sum, inv) => sum + inv.currentValueKes, 0) || 0;
+    investmentsList.reduce((sum, inv) => sum + Number(inv.current_value_kes), 0) || 0;
 
   const totalInitialAmountKes =
-    investments.reduce((sum, inv) => sum + inv.initialAmountKes, 0) || 0;
+    investmentsList.reduce((sum, inv) => sum + Number(inv.initial_amount_kes), 0) || 0;
 
   const totalGainKes = totalCurrentValueKes - totalInitialAmountKes;
   const totalGainPercentage =
@@ -35,12 +43,12 @@ export async function GET(request: Request) {
       : 0;
 
   const investedThisMonth =
-    investments
+    investmentsList
       .filter((inv) => {
-        const dateInvested = new Date(inv.dateInvested);
+        const dateInvested = new Date(inv.date_invested);
         return dateInvested >= fromDate && dateInvested <= toDate;
       })
-      .reduce((sum, inv) => sum + inv.initialAmountKes, 0) || 0;
+      .reduce((sum, inv) => sum + Number(inv.initial_amount_kes), 0) || 0;
 
   return Response.json({
     totalCurrentValueKes,
@@ -48,6 +56,6 @@ export async function GET(request: Request) {
     totalGainKes,
     totalGainPercentage,
     investedThisMonth,
-    investmentsCount: investments.length || 0,
+    investmentsCount: investmentsList.length || 0,
   });
 }

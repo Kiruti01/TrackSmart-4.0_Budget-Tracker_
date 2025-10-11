@@ -69,7 +69,6 @@ function page() {
         <CategoryList type="income" />
         <CategoryList type="expense" />
         <CategoryList type="savings" />
-        <InvestmentCategoryList />
       </div>
     </>
   );

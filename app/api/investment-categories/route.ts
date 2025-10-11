@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseServiceClient } from "@/lib/supabase";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     redirect("/sign-in");
   }
 
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseServiceClient();
 
   const { data: categories, error } = await supabase
     .from("investment_categories")
@@ -17,8 +17,9 @@ export async function GET(request: Request) {
     .order("name", { ascending: true });
 
   if (error) {
+    console.error("Error fetching investment categories:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json(categories);
+  return Response.json(categories || []);
 }
