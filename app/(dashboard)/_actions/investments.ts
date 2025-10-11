@@ -1,6 +1,6 @@
 "use server";
 
-import { getSupabaseClient } from "@/lib/supabase";
+import prisma from "@/lib/prisma";
 import {
   CreateInvestmentSchema,
   CreateInvestmentSchemaType,
@@ -40,33 +40,26 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
   const finalCurrentExchangeRate = currentExchangeRate || exchangeRate;
   const currentValueKes = finalCurrentAmount * finalCurrentExchangeRate;
 
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("investments")
-    .insert({
-      user_id: user.id,
+  const investment = await prisma.investment.create({
+    data: {
+      userId: user.id,
       name,
-      category_id: categoryId,
+      categoryId,
       currency,
-      initial_amount: initialAmount,
-      initial_exchange_rate: exchangeRate,
-      initial_amount_kes: initialAmountKes,
-      current_amount: finalCurrentAmount,
-      current_exchange_rate: finalCurrentExchangeRate,
-      current_value_kes: currentValueKes,
-      total_invested: initialAmount,
-      date_invested: dateInvested.toISOString().split("T")[0],
-      notes,
-      last_updated: new Date().toISOString(),
-    })
-    .select()
-    .single();
+      initialAmount,
+      initialExchangeRate: exchangeRate,
+      initialAmountKes,
+      currentAmount: finalCurrentAmount,
+      currentExchangeRate: finalCurrentExchangeRate,
+      currentValueKes,
+      totalInvested: initialAmount,
+      dateInvested,
+      notes: notes || null,
+      lastUpdated: new Date(),
+    },
+  });
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data;
+  return investment;
 }
 
 export async function UpdateInvestmentValue(
@@ -92,24 +85,23 @@ export async function UpdateInvestmentValue(
     notes,
   } = parsedBody.data;
 
-  const supabase = getSupabaseClient();
-  const { data: investment, error: fetchError } = await supabase
-    .from("investments")
-    .select("*")
-    .eq("id", investmentId)
-    .eq("user_id", user.id)
-    .single();
+  const investment = await prisma.investment.findFirst({
+    where: {
+      id: investmentId,
+      userId: user.id,
+    },
+  });
 
-  if (fetchError || !investment) {
+  if (!investment) {
     throw new Error("Investment not found");
   }
 
-  const previousAmount = Number(investment.current_amount);
-  const previousExchangeRate = Number(investment.current_exchange_rate);
-  const previousValueKes = Number(investment.current_value_kes);
+  const previousAmount = investment.currentAmount;
+  const previousExchangeRate = investment.currentExchangeRate;
+  const previousValueKes = investment.currentValueKes;
 
   let finalNewAmount = newAmount;
-  let finalTotalInvested = Number(investment.total_invested);
+  let finalTotalInvested = investment.totalInvested;
 
   if (updateType === "capital_addition" && additionalCapital) {
     finalTotalInvested += additionalCapital;
@@ -124,45 +116,39 @@ export async function UpdateInvestmentValue(
   const percentageChangeKes =
     previousValueKes > 0 ? (gainLossKes / previousValueKes) * 100 : 0;
 
-  const { error: updateError } = await supabase
-    .from("investments")
-    .update({
-      current_amount: finalNewAmount,
-      current_exchange_rate: exchangeRate,
-      current_value_kes: newValueKes,
-      total_invested: finalTotalInvested,
-      last_updated: new Date().toISOString(),
-    })
-    .eq("id", investmentId)
-    .eq("user_id", user.id);
-
-  if (updateError) {
-    throw new Error(updateError.message);
-  }
-
-  const { error: historyError } = await supabase
-    .from("investment_updates")
-    .insert({
-      investment_id: investmentId,
-      update_type: updateType,
-      previous_amount: previousAmount,
-      new_amount: finalNewAmount,
-      previous_exchange_rate: previousExchangeRate,
-      new_exchange_rate: exchangeRate,
-      previous_value_kes: previousValueKes,
-      new_value_kes: newValueKes,
-      additional_capital: additionalCapital || null,
-      gain_loss_currency: gainLossCurrency,
-      gain_loss_kes: gainLossKes,
-      percentage_change_currency: percentageChangeCurrency,
-      percentage_change_kes: percentageChangeKes,
-      update_date: updateDate.toISOString().split("T")[0],
-      notes,
-    });
-
-  if (historyError) {
-    throw new Error(historyError.message);
-  }
+  await prisma.$transaction([
+    prisma.investment.update({
+      where: {
+        id: investmentId,
+      },
+      data: {
+        currentAmount: finalNewAmount,
+        currentExchangeRate: exchangeRate,
+        currentValueKes: newValueKes,
+        totalInvested: finalTotalInvested,
+        lastUpdated: new Date(),
+      },
+    }),
+    prisma.investmentUpdate.create({
+      data: {
+        investmentId,
+        updateType,
+        previousAmount,
+        newAmount: finalNewAmount,
+        previousExchangeRate,
+        newExchangeRate: exchangeRate,
+        previousValueKes,
+        newValueKes,
+        additionalCapital: additionalCapital || null,
+        gainLossCurrency,
+        gainLossKes,
+        percentageChangeCurrency,
+        percentageChangeKes,
+        updateDate,
+        notes: notes || null,
+      },
+    }),
+  ]);
 
   return { success: true };
 }
@@ -173,16 +159,12 @@ export async function DeleteInvestment(investmentId: string) {
     redirect("/sign-in");
   }
 
-  const supabase = getSupabaseClient();
-  const { error } = await supabase
-    .from("investments")
-    .delete()
-    .eq("id", investmentId)
-    .eq("user_id", user.id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  await prisma.investment.delete({
+    where: {
+      id: investmentId,
+      userId: user.id,
+    },
+  });
 
   return { success: true };
 }
@@ -202,21 +184,14 @@ export async function CreateInvestmentCategory(
 
   const { name, icon } = parsedBody.data;
 
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("investment_categories")
-    .insert({
-      user_id: user.id,
+  const category = await prisma.investmentCategory.create({
+    data: {
+      userId: user.id,
       name,
       icon,
-      is_system_default: false,
-    })
-    .select()
-    .single();
+      isSystemDefault: false,
+    },
+  });
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data;
+  return category;
 }

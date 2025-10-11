@@ -66,3 +66,66 @@ model CumulativeSavings {
   totalSavings Float    @default(0)
   updatedAt    DateTime @updatedAt
 }
+
+model InvestmentCategory {
+  id              String       @id @default(uuid())
+  userId          String?
+  name            String
+  icon            String       @default("📝")
+  isSystemDefault Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  investments     Investment[]
+
+  @@map("investment_categories")
+}
+
+model Investment {
+  id                    String             @id @default(uuid())
+  userId                String
+  name                  String
+  categoryId            String
+  currency              String             @default("KES")
+  initialAmount         Float
+  initialExchangeRate   Float              @default(1.0)
+  initialAmountKes      Float
+  currentAmount         Float
+  currentExchangeRate   Float              @default(1.0)
+  currentValueKes       Float
+  totalInvested         Float
+  dateInvested          DateTime
+  lastUpdated           DateTime           @default(now())
+  notes                 String?
+  createdAt             DateTime           @default(now())
+  category              InvestmentCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  updates               InvestmentUpdate[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([dateInvested])
+  @@map("investments")
+}
+
+model InvestmentUpdate {
+  id                       String     @id @default(uuid())
+  investmentId             String
+  updateType               String
+  previousAmount           Float
+  newAmount                Float
+  previousExchangeRate     Float
+  newExchangeRate          Float
+  previousValueKes         Float
+  newValueKes              Float
+  additionalCapital        Float?
+  gainLossCurrency         Float
+  gainLossKes              Float
+  percentageChangeCurrency Float
+  percentageChangeKes      Float
+  updateDate               DateTime
+  notes                    String?
+  createdAt                DateTime   @default(now())
+  investment               Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+
+  @@index([investmentId])
+  @@index([updateDate])
+  @@map("investment_updates")
+}
