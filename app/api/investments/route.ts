@@ -28,11 +28,35 @@ export async function GET(request: Request) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  const transformedInvestments = (investments || []).map((inv: any) => ({
-    ...inv,
-    category: inv.investment_categories,
-    investment_categories: undefined,
-  }));
+  const transformedInvestments = (investments || []).map((inv: any) => {
+    const category = inv.investment_categories;
+    return {
+      id: inv.id,
+      userId: inv.user_id,
+      name: inv.name,
+      categoryId: inv.category_id,
+      currency: inv.currency,
+      initialAmount: inv.initial_amount ?? 0,
+      initialExchangeRate: inv.initial_exchange_rate ?? 1,
+      initialAmountKes: inv.initial_amount_kes ?? 0,
+      currentAmount: inv.current_amount ?? inv.initial_amount ?? 0,
+      currentExchangeRate: inv.current_exchange_rate ?? inv.initial_exchange_rate ?? 1,
+      currentValueKes: inv.current_value_kes ?? inv.initial_amount_kes ?? 0,
+      totalInvested: inv.total_invested ?? inv.initial_amount ?? 0,
+      dateInvested: inv.date_invested,
+      lastUpdated: inv.last_updated,
+      notes: inv.notes,
+      createdAt: inv.created_at,
+      category: category ? {
+        id: category.id,
+        userId: category.user_id,
+        name: category.name,
+        icon: category.icon,
+        isSystemDefault: category.is_system_default,
+        createdAt: category.created_at,
+      } : undefined,
+    };
+  });
 
   return Response.json(transformedInvestments);
 }
