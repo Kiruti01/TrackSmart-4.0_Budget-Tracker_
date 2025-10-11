@@ -55,7 +55,7 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
       current_amount: finalCurrentAmount,
       current_exchange_rate: finalCurrentExchangeRate,
       current_value_kes: currentValueKes,
-      total_invested: initialAmount,
+      total_invested: initialAmountKes,
       date_invested: dateInvested,
       notes: notes || null,
       last_updated: new Date().toISOString(),
