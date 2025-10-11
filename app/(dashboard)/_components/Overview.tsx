@@ -2,6 +2,7 @@
 
 import CategoriesStats from "@/app/(dashboard)/_components/CategoriesStats";
 import StatsCards from "@/app/(dashboard)/_components/StatsCards";
+import InvestmentsSection from "@/app/(dashboard)/_components/InvestmentsSection";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { MAX_DATE_RANGE_DAYS } from "@/lib/constants";
 // import { UserSettings } from "@prisma/client";
@@ -63,6 +64,8 @@ function Overview({ userSettings }: { userSettings: any }) {
           to={dateRange.to}
         />
       </div>
+
+      <InvestmentsSection />
     </>
   );
 }

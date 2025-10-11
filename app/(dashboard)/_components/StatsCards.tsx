@@ -17,6 +17,7 @@ import {
   TrendingDown,
   TrendingUp,
   Wallet,
+  LineChart,
 } from "lucide-react";
 import React, { ReactNode, useCallback, useMemo } from "react";
 import CountUp from "react-countup";
@@ -53,6 +54,18 @@ function StatsCards({ from, to, userSettings }: Props) {
     queryFn: () =>
       fetch(`/api/stats/cumulative-savings`).then((res) => res.json()),
   });
+
+  // Query for investments data
+  const investmentsQuery = useQuery({
+    queryKey: ["investments", "stats", from, to],
+    queryFn: () => {
+      const fromDate = DateToUTCDate(from);
+      const toDate = DateToUTCDate(to);
+      return fetch(
+        `/api/investments/stats?from=${fromDate.toISOString()}&to=${toDate.toISOString()}`
+      ).then((res) => res.json());
+    },
+  });
   const formatter = useMemo(() => {
     return GetFormatterForCurrency(userSettings.currency);
   }, [userSettings.currency]);
@@ -67,14 +80,22 @@ function StatsCards({ from, to, userSettings }: Props) {
   const totalCumulativeSavings =
     cumulativeSavingsQuery.data?.totalCumulativeSavings || 0;
 
+  // Get investments data
+  const totalInvestmentsValue =
+    investmentsQuery.data?.totalCurrentValueKes || 0;
+  const investedThisMonth = investmentsQuery.data?.investedThisMonth || 0;
+  const totalInvestmentGain = investmentsQuery.data?.totalGainKes || 0;
+  const totalInvestmentGainPercentage =
+    investmentsQuery.data?.totalGainPercentage || 0;
+
   // Calculate current period balance
   const currentPeriodBalance = income - expense - currentPeriodSavings;
 
   // Calculate total balance including carry-over from previous periods
   const balance = totalBalanceBeforePeriod + currentPeriodBalance;
 
-  // Calculate total net worth (balance + total cumulative savings)
-  const total = balance + totalCumulativeSavings;
+  // Calculate total net worth (balance + total cumulative savings + investments)
+  const total = balance + totalCumulativeSavings + totalInvestmentsValue;
 
   //experiments
 
@@ -151,8 +172,21 @@ function StatsCards({ from, to, userSettings }: Props) {
         />
       </SkeletonWrapper>
 
+      <SkeletonWrapper isLoading={investmentsQuery.isFetching}>
+        <StatCard
+          formatter={formatter}
+          value={totalInvestmentsValue}
+          title="Investments Value"
+          subtitle={`Gain: ${totalInvestmentGain >= 0 ? "+" : ""}${formatter.format(totalInvestmentGain)} (${totalInvestmentGainPercentage >= 0 ? "+" : ""}${totalInvestmentGainPercentage.toFixed(2)}%)`}
+          subtitleColor={totalInvestmentGain >= 0 ? "text-emerald-500" : "text-red-500"}
+          icon={
+            <LineChart className="h-12 w-12 items-center rounded-lg p-2 text-amber-500 bg-amber-400/10" />
+          }
+        />
+      </SkeletonWrapper>
+
       <SkeletonWrapper
-        isLoading={statsQuery.isFetching || cumulativeSavingsQuery.isFetching}
+        isLoading={statsQuery.isFetching || cumulativeSavingsQuery.isFetching || investmentsQuery.isFetching}
       >
         <StatCard
           formatter={formatter}
@@ -175,12 +209,16 @@ function StatCard({
   title,
   icon,
   percentage,
+  subtitle,
+  subtitleColor,
 }: {
   formatter: Intl.NumberFormat;
   icon: ReactNode;
   title: String;
   value: number;
-  percentage?: number; // Change the type of percentage to number
+  percentage?: number;
+  subtitle?: string;
+  subtitleColor?: string;
 }) {
   const isDesktop = useIsDesktop();
 
@@ -207,9 +245,14 @@ function StatCard({
           formattingFn={formatFn}
           className="text-lg font-semibold truncate"
         />
-        {percentage !== undefined && ( // Include incomePercentage here
+        {percentage !== undefined && (
           <p className="text-xs text-muted-foreground mt-1 truncate">
             {percentage}% of income
+          </p>
+        )}
+        {subtitle && (
+          <p className={`text-xs mt-1 truncate font-semibold ${subtitleColor}`}>
+            {subtitle}
           </p>
         )}
       </div>

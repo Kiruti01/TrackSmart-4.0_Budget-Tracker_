@@ -7,6 +7,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import React from "react";
 import CreateTransactionDialog from "./_components/CreateTransactionDialog";
+import CreateInvestmentDialog from "./_components/CreateInvestmentDialog";
 
 async function page() {
   const user = await currentUser();
@@ -69,6 +70,17 @@ async function page() {
                 </Button>
               }
               type="savings"
+            />
+
+            <CreateInvestmentDialog
+              trigger={
+                <Button
+                  variant={"outline"}
+                  className="border-amber-500 bg-amber-950 text-white hover:bg-amber-700 hover:text-white w-full sm:w-auto"
+                >
+                  New Investment 📈
+                </Button>
+              }
             />
           </div>
         </div>
