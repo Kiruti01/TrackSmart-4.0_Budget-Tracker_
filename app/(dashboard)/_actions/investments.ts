@@ -215,6 +215,9 @@ export async function UpdateInvestmentValue(
     throw new Error(updateError.message);
   }
 
+  const updateDateObj = new Date(updateDate);
+  const updateDateString = updateDateObj.toISOString().split('T')[0];
+
   const { error: insertError } = await supabase
     .from("investment_updates")
     .insert({
@@ -231,7 +234,7 @@ export async function UpdateInvestmentValue(
       gain_loss_kes: gainLossKes,
       percentage_change_currency: percentageChangeCurrency,
       percentage_change_kes: percentageChangeKes,
-      update_date: updateDate,
+      update_date: updateDateString,
       notes: notes || null,
     });
 
