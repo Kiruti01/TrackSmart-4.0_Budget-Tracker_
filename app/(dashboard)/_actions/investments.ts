@@ -364,12 +364,22 @@ export async function CreateInvestmentCategory(
     throw new Error(error.message);
   }
 
-  await prisma.category.create({
-    data: {
+  await prisma.category.upsert({
+    where: {
+      name_userId_type: {
+        name,
+        userId: user.id,
+        type: "investment",
+      },
+    },
+    create: {
       name,
       userId: user.id,
       icon,
       type: "investment",
+    },
+    update: {
+      icon,
     },
   });
 
