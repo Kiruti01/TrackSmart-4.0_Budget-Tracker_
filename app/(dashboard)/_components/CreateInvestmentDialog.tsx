@@ -75,13 +75,17 @@ function CreateInvestmentDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<any[]>({
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery<any[]>({
     queryKey: ["investment-categories"],
-    queryFn: () =>
-      fetch("/api/investment-categories").then((res) => res.json()),
+    queryFn: async () => {
+      const res = await fetch("/api/investment-categories");
+      const data = await res.json();
+      console.log("Raw API response:", data);
+      console.log("Is array:", Array.isArray(data));
+      console.log("Length:", data?.length);
+      return data;
+    },
   });
-
-  console.log("Categories:", categories);
 
   const { mutate, isPending } = useMutation({
     mutationFn: CreateInvestment,
@@ -167,7 +171,9 @@ function CreateInvestmentDialog({ trigger }: Props) {
                     <SelectContent>
                       {categoriesLoading ? (
                         <div className="p-2 text-sm text-muted-foreground">Loading...</div>
-                      ) : categories.length === 0 ? (
+                      ) : categoriesError ? (
+                        <div className="p-2 text-sm text-red-500">Error loading categories</div>
+                      ) : !categories || categories.length === 0 ? (
                         <div className="p-2 text-sm text-muted-foreground">No categories found</div>
                       ) : (
                         categories.map((cat) => (

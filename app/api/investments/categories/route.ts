@@ -1,4 +1,4 @@
-import { getSupabaseServiceClient } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     return Response.json({ error: "Missing date parameters" }, { status: 400 });
   }
 
-  const supabase = getSupabaseServiceClient();
+  const supabase = getSupabaseClient();
 
   const { data: investments, error } = await supabase
     .from("investments")

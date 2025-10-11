@@ -1,4 +1,4 @@
-import { getSupabaseServiceClient } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { startOfMonth, endOfMonth } from "date-fns";
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const fromDate = from ? new Date(from) : startOfMonth(new Date());
   const toDate = to ? new Date(to) : endOfMonth(new Date());
 
-  const supabase = getSupabaseServiceClient();
+  const supabase = getSupabaseClient();
 
   const { data: investments, error } = await supabase
     .from("investments")

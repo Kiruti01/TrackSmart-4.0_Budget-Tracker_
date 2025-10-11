@@ -1,6 +1,6 @@
 "use server";
 
-import { getSupabaseServiceClient } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import {
   CreateInvestmentSchema,
   CreateInvestmentSchemaType,
@@ -39,7 +39,7 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
   const finalCurrentAmount = currentAmount || initialAmount;
   const finalCurrentExchangeRate = currentExchangeRate || exchangeRate;
   const currentValueKes = finalCurrentAmount * finalCurrentExchangeRate;
-  const supabase = getSupabaseServiceClient();
+  const supabase = getSupabaseClient();
 
   const { data: investment, error } = await supabase
     .from("investments")
@@ -92,7 +92,7 @@ export async function UpdateInvestmentValue(
     notes,
   } = parsedBody.data;
 
-  const supabase = getSupabaseServiceClient();
+  const supabase = getSupabaseClient();
 
   const { data: investment, error: fetchError } = await supabase
     .from("investments")
@@ -173,7 +173,7 @@ export async function DeleteInvestment(investmentId: string) {
     redirect("/sign-in");
   }
 
-  const supabase = getSupabaseServiceClient();
+  const supabase = getSupabaseClient();
 
   const { error } = await supabase
     .from("investments")
@@ -202,7 +202,7 @@ export async function CreateInvestmentCategory(
   }
 
   const { name, icon } = parsedBody.data;
-  const supabase = getSupabaseServiceClient();
+  const supabase = getSupabaseClient();
 
   const { data: category, error } = await supabase
     .from("investment_categories")
@@ -228,7 +228,7 @@ export async function DeleteInvestmentCategory(categoryId: string) {
     redirect("/sign-in");
   }
 
-  const supabase = getSupabaseServiceClient();
+  const supabase = getSupabaseClient();
 
   const { data: category, error: fetchError } = await supabase
     .from("investment_categories")
