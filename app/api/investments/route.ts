@@ -28,5 +28,11 @@ export async function GET(request: Request) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json(investments || []);
+  const transformedInvestments = (investments || []).map((inv: any) => ({
+    ...inv,
+    category: inv.investment_categories,
+    investment_categories: undefined,
+  }));
+
+  return Response.json(transformedInvestments);
 }
