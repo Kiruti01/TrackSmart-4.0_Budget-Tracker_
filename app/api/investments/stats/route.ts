@@ -1,7 +1,9 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { startOfMonth, endOfMonth } from "date-fns";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const user = await currentUser();
@@ -16,6 +18,7 @@ export async function GET(request: Request) {
   const fromDate = from ? new Date(from) : startOfMonth(new Date());
   const toDate = to ? new Date(to) : endOfMonth(new Date());
 
+  const supabase = getSupabaseClient();
   const { data: investments, error: investmentsError } = await supabase
     .from("investments")
     .select("*")

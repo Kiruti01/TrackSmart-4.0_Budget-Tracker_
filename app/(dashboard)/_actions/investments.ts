@@ -1,6 +1,6 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 import {
   CreateInvestmentSchema,
   CreateInvestmentSchemaType,
@@ -40,6 +40,7 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
   const finalCurrentExchangeRate = currentExchangeRate || exchangeRate;
   const currentValueKes = finalCurrentAmount * finalCurrentExchangeRate;
 
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("investments")
     .insert({
@@ -91,6 +92,7 @@ export async function UpdateInvestmentValue(
     notes,
   } = parsedBody.data;
 
+  const supabase = getSupabaseClient();
   const { data: investment, error: fetchError } = await supabase
     .from("investments")
     .select("*")
@@ -171,6 +173,7 @@ export async function DeleteInvestment(investmentId: string) {
     redirect("/sign-in");
   }
 
+  const supabase = getSupabaseClient();
   const { error } = await supabase
     .from("investments")
     .delete()
@@ -199,6 +202,7 @@ export async function CreateInvestmentCategory(
 
   const { name, icon } = parsedBody.data;
 
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("investment_categories")
     .insert({

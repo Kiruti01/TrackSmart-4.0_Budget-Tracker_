@@ -1,6 +1,8 @@
-import { getSupabaseClient } from "@/lib/supabase"; // Import function, not instance
+import { getSupabaseClient } from "@/lib/supabase";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const user = await currentUser();
