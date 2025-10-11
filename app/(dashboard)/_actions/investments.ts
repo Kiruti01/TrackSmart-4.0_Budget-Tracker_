@@ -86,21 +86,25 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
   });
 
   const dateObj = new Date(dateInvested);
+  const localDay = dateObj.getDate();
+  const localMonth = dateObj.getMonth() + 1;
+  const localYear = dateObj.getFullYear();
+
   await prisma.$transaction([
     prisma.monthHistory.upsert({
       where: {
         userId_day_month_year: {
           userId: user.id,
-          day: dateObj.getUTCDate(),
-          month: dateObj.getUTCMonth(),
-          year: dateObj.getUTCFullYear(),
+          day: localDay,
+          month: localMonth,
+          year: localYear,
         },
       },
       create: {
         userId: user.id,
-        day: dateObj.getUTCDate(),
-        month: dateObj.getUTCMonth(),
-        year: dateObj.getUTCFullYear(),
+        day: localDay,
+        month: localMonth,
+        year: localYear,
         investment: initialAmountKes,
         income: 0,
         expense: 0,
@@ -116,14 +120,14 @@ export async function CreateInvestment(form: CreateInvestmentSchemaType) {
       where: {
         month_year_userId: {
           userId: user.id,
-          month: dateObj.getUTCMonth(),
-          year: dateObj.getUTCFullYear(),
+          month: localMonth,
+          year: localYear,
         },
       },
       create: {
         userId: user.id,
-        month: dateObj.getUTCMonth(),
-        year: dateObj.getUTCFullYear(),
+        month: localMonth,
+        year: localYear,
         investment: initialAmountKes,
         income: 0,
         expense: 0,
@@ -257,21 +261,25 @@ export async function UpdateInvestmentValue(
     });
 
     const dateObj = new Date(updateDate);
+    const localDay = dateObj.getDate();
+    const localMonth = dateObj.getMonth() + 1;
+    const localYear = dateObj.getFullYear();
+
     await prisma.$transaction([
       prisma.monthHistory.upsert({
         where: {
           userId_day_month_year: {
             userId: user.id,
-            day: dateObj.getUTCDate(),
-            month: dateObj.getUTCMonth(),
-            year: dateObj.getUTCFullYear(),
+            day: localDay,
+            month: localMonth,
+            year: localYear,
           },
         },
         create: {
           userId: user.id,
-          day: dateObj.getUTCDate(),
-          month: dateObj.getUTCMonth(),
-          year: dateObj.getUTCFullYear(),
+          day: localDay,
+          month: localMonth,
+          year: localYear,
           investment: additionalCapitalKes,
           income: 0,
           expense: 0,
@@ -287,14 +295,14 @@ export async function UpdateInvestmentValue(
         where: {
           month_year_userId: {
             userId: user.id,
-            month: dateObj.getUTCMonth(),
-            year: dateObj.getUTCFullYear(),
+            month: localMonth,
+            year: localYear,
           },
         },
         create: {
           userId: user.id,
-          month: dateObj.getUTCMonth(),
-          year: dateObj.getUTCFullYear(),
+          month: localMonth,
+          year: localYear,
           investment: additionalCapitalKes,
           income: 0,
           expense: 0,
