@@ -167,25 +167,20 @@ export async function UpdateInvestmentValue(
     notes,
   } = parsedBody.data;
 
-  const supabase = getSupabaseClient();
+  const investment = await prisma.investment.findUnique({
+    where: { id: investmentId },
+  });
 
-  const { data: investment, error: fetchError } = await supabase
-    .from("investments")
-    .select("*")
-    .eq("id", investmentId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (fetchError || !investment) {
+  if (!investment || investment.userId !== user.id) {
     throw new Error("Investment not found");
   }
 
-  const previousAmount = Number(investment.current_amount);
-  const previousExchangeRate = Number(investment.current_exchange_rate);
-  const previousValueKes = Number(investment.current_value_kes);
+  const previousAmount = Number(investment.currentAmount);
+  const previousExchangeRate = Number(investment.currentExchangeRate);
+  const previousValueKes = Number(investment.currentValueKes);
 
   let finalNewAmount = Number(newAmount);
-  let finalTotalInvested = Number(investment.total_invested);
+  let finalTotalInvested = Number(investment.totalInvested);
 
   if (updateType === "capital_addition" && additionalCapital) {
     finalTotalInvested += Number(additionalCapital);
@@ -200,63 +195,51 @@ export async function UpdateInvestmentValue(
   const percentageChangeKes =
     previousValueKes > 0 ? (gainLossKes / previousValueKes) * 100 : 0;
 
-  const { error: updateError } = await supabase
-    .from("investments")
-    .update({
-      current_amount: finalNewAmount,
-      current_exchange_rate: exchangeRate,
-      current_value_kes: newValueKes,
-      total_invested: finalTotalInvested,
-      last_updated: new Date().toISOString(),
-    })
-    .eq("id", investmentId);
+  await prisma.investment.update({
+    where: { id: investmentId },
+    data: {
+      currentAmount: finalNewAmount,
+      currentExchangeRate: exchangeRate,
+      currentValueKes: newValueKes,
+      totalInvested: finalTotalInvested,
+      lastUpdated: new Date(),
+    },
+  });
 
-  if (updateError) {
-    throw new Error(updateError.message);
-  }
-
-  const updateDateObj = new Date(updateDate);
-  const updateDateString = updateDateObj.toISOString().split('T')[0];
-
-  const { error: insertError } = await supabase
-    .from("investment_updates")
-    .insert({
-      investment_id: investmentId,
-      update_type: updateType,
-      previous_amount: previousAmount,
-      new_amount: finalNewAmount,
-      previous_exchange_rate: previousExchangeRate,
-      new_exchange_rate: exchangeRate,
-      previous_value_kes: previousValueKes,
-      new_value_kes: newValueKes,
-      additional_capital: additionalCapital || null,
-      gain_loss_currency: gainLossCurrency,
-      gain_loss_kes: gainLossKes,
-      percentage_change_currency: percentageChangeCurrency,
-      percentage_change_kes: percentageChangeKes,
-      update_date: updateDateString,
+  await prisma.investmentUpdate.create({
+    data: {
+      investmentId,
+      updateType,
+      previousAmount,
+      newAmount: finalNewAmount,
+      previousExchangeRate,
+      newExchangeRate: exchangeRate,
+      previousValueKes,
+      newValueKes,
+      additionalCapital: additionalCapital ? Number(additionalCapital) : null,
+      gainLossCurrency,
+      gainLossKes,
+      percentageChangeCurrency,
+      percentageChangeKes,
+      updateDate: new Date(updateDate),
       notes: notes || null,
-    });
-
-  if (insertError) {
-    throw new Error(insertError.message);
-  }
+    },
+  });
 
   if (updateType === "capital_addition" && additionalCapital) {
     const additionalCapitalKes = Number(additionalCapital) * Number(exchangeRate);
 
-    const { data: categoryData } = await supabase
-      .from("investment_categories")
-      .select("name, icon")
-      .eq("id", investment.category_id)
-      .single();
+    const category = await prisma.investmentCategory.findUnique({
+      where: { id: investment.categoryId },
+      select: { name: true, icon: true },
+    });
 
     await prisma.transaction.create({
       data: {
         userId: user.id,
         type: "investment",
-        category: categoryData?.name || "Investment",
-        categoryIcon: categoryData?.icon || "💰",
+        category: category?.name || "Investment",
+        categoryIcon: category?.icon || "💰",
         description: `Capital Addition: ${investment.name}`,
         amount: additionalCapitalKes,
         date: new Date(updateDate),
