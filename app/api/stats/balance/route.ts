@@ -80,9 +80,13 @@ async function getBalanceStats(userId: string, from: Date, to: Date) {
     transactionsBeforePeriod.find(
       (t: GroupedTransaction) => t.type === "savings"
     )?._sum.amount || 0;
+  const investmentBeforePeriod =
+    transactionsBeforePeriod.find(
+      (t: GroupedTransaction) => t.type === "investment"
+    )?._sum.amount || 0;
 
   const totalBalanceBeforePeriod =
-    incomeBeforePeriod - expenseBeforePeriod - savingsBeforePeriod;
+    incomeBeforePeriod - expenseBeforePeriod - savingsBeforePeriod - investmentBeforePeriod;
 
   // Get current period totals
   const totals = await prisma.transaction.groupBy({
