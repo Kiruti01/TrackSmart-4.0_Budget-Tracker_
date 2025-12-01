@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   }
 
   const data = await getHistoryData(user.id, queryParams.data.timeframe, {
-    month: queryParams.data.month - 1,
+    month: queryParams.data.month,
     year: queryParams.data.year,
   });
 
@@ -94,7 +94,7 @@ async function getYearHistoryData(userId: string, year: number) {
 
   const history: HistoryData[] = [];
 
-  for (let i = 0; i < 12; i++) {
+  for (let i = 1; i <= 12; i++) {
     let expense = 0;
     let income = 0;
     let savings = 0;
@@ -110,7 +110,7 @@ async function getYearHistoryData(userId: string, year: number) {
 
     history.push({
       year,
-      month: i,
+      month: i - 1,
       expense,
       income,
       savings,
@@ -174,7 +174,7 @@ async function getMonthHistoryData(
       savings,
       investment,
       year,
-      month,
+      month: month - 1,
       day: i,
     });
   }
