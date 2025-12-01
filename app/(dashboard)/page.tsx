@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import React from "react";
 import CreateTransactionDialog from "./_components/CreateTransactionDialog";
 import CreateInvestmentDialog from "./_components/CreateInvestmentDialog";
+import LoansSection from "./_components/LoansSection";
 
 async function page() {
   const user = await currentUser();
@@ -87,6 +88,9 @@ async function page() {
       </div>
       <Overview userSettings={userSettings} />
       <History userSettings={userSettings} />
+      <div className="container py-8">
+        <LoansSection userSettings={userSettings} />
+      </div>
       <div className="container flex flex-wrap items-center justify-center gap-6 py-8">
         <p className="text-xl font-bold">&copy; {new Date().getFullYear()} Kiruti Tech&trade;</p>
       </div>
