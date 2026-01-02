@@ -20,7 +20,7 @@ export const CreateInvestmentSchema = z.object({
 
 export const UpdateInvestmentValueSchema = z.object({
   investmentId: z.string().uuid("Invalid investment ID"),
-  updateType: z.enum(["value_update", "capital_addition"]),
+  updateType: z.enum(["value_update", "capital_addition", "capital_withdrawal"]),
   newAmount: z.coerce.number().positive("Amount must be positive").finite(),
   exchangeRate: z.coerce
     .number()

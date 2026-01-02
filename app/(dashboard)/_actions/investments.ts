@@ -181,9 +181,20 @@ export async function UpdateInvestmentValue(
 
   let finalNewAmount = Number(newAmount);
   let finalTotalInvested = Number(investment.totalInvested);
+  let transactionAmount = 0;
+  let capitalChangeAmount = 0;
 
-  if (updateType === "capital_addition" && additionalCapital) {
-    finalTotalInvested += Number(additionalCapital);
+  if ((updateType === "capital_addition" || updateType === "capital_withdrawal") && additionalCapital) {
+    const additionalCapitalAmount = Number(additionalCapital);
+    capitalChangeAmount = additionalCapitalAmount * Number(exchangeRate);
+
+    if (updateType === "capital_addition") {
+      finalTotalInvested += additionalCapitalAmount;
+      transactionAmount = capitalChangeAmount;
+    } else {
+      finalTotalInvested -= additionalCapitalAmount;
+      transactionAmount = -capitalChangeAmount;
+    }
   }
 
   const newValueKes = finalNewAmount * Number(exchangeRate);
@@ -226,13 +237,16 @@ export async function UpdateInvestmentValue(
     },
   });
 
-  if (updateType === "capital_addition" && additionalCapital) {
-    const additionalCapitalKes = Number(additionalCapital) * Number(exchangeRate);
-
+  if ((updateType === "capital_addition" || updateType === "capital_withdrawal") && additionalCapital) {
     const category = await prisma.investmentCategory.findUnique({
       where: { id: investment.categoryId },
       select: { name: true, icon: true },
     });
+
+    const transactionDescription =
+      updateType === "capital_addition"
+        ? `Capital Addition: ${investment.name}`
+        : `Capital Withdrawal: ${investment.name}`;
 
     await prisma.transaction.create({
       data: {
@@ -240,8 +254,8 @@ export async function UpdateInvestmentValue(
         type: "investment",
         category: category?.name || "Investment",
         categoryIcon: category?.icon || "💰",
-        description: `Capital Addition: ${investment.name}`,
-        amount: additionalCapitalKes,
+        description: transactionDescription,
+        amount: transactionAmount,
         date: new Date(updateDate),
       },
     });
@@ -250,6 +264,8 @@ export async function UpdateInvestmentValue(
     const localDay = dateObj.getDate();
     const localMonth = dateObj.getMonth() + 1;
     const localYear = dateObj.getFullYear();
+
+    const historyChange = updateType === "capital_addition" ? capitalChangeAmount : -capitalChangeAmount;
 
     await prisma.$transaction([
       prisma.monthHistory.upsert({
@@ -266,14 +282,14 @@ export async function UpdateInvestmentValue(
           day: localDay,
           month: localMonth,
           year: localYear,
-          investment: additionalCapitalKes,
+          investment: historyChange,
           income: 0,
           expense: 0,
           savings: 0,
         },
         update: {
           investment: {
-            increment: additionalCapitalKes,
+            increment: historyChange,
           },
         },
       }),
@@ -289,14 +305,14 @@ export async function UpdateInvestmentValue(
           userId: user.id,
           month: localMonth,
           year: localYear,
-          investment: additionalCapitalKes,
+          investment: historyChange,
           income: 0,
           expense: 0,
           savings: 0,
         },
         update: {
           investment: {
-            increment: additionalCapitalKes,
+            increment: historyChange,
           },
         },
       }),

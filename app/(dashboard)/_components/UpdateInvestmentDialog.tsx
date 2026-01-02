@@ -229,6 +229,18 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
                           Add More Capital
                         </Label>
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value="capital_withdrawal"
+                          id="capital_withdrawal"
+                        />
+                        <Label
+                          htmlFor="capital_withdrawal"
+                          className="font-normal cursor-pointer"
+                        >
+                          Withdraw Capital
+                        </Label>
+                      </div>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -236,13 +248,15 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
               )}
             />
 
-            {updateType === "capital_addition" && (
+            {(updateType === "capital_addition" || updateType === "capital_withdrawal") && (
               <FormField
                 control={form.control}
                 name="additionalCapital"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Additional Capital</FormLabel>
+                    <FormLabel>
+                      {updateType === "capital_addition" ? "Capital to Add" : "Capital to Withdraw"}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -252,7 +266,9 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
                       />
                     </FormControl>
                     <FormDescription>
-                      Amount of new capital being added
+                      {updateType === "capital_addition"
+                        ? "Amount of new capital being added"
+                        : "Amount of capital being withdrawn"}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -267,9 +283,9 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {updateType === "capital_addition"
-                        ? "New Total Value"
-                        : "Current Value"}
+                      {updateType === "value_update"
+                        ? "Current Value"
+                        : "New Investment Value"}
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -279,6 +295,11 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
                         {...field}
                       />
                     </FormControl>
+                    <FormDescription>
+                      {updateType === "value_update"
+                        ? "Total current value of the investment"
+                        : "Total investment value after this transaction"}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -340,10 +361,14 @@ function UpdateInvestmentDialog({ trigger, investment }: Props) {
                   ({changePercentageKes >= 0 ? "+" : ""}
                   {changePercentageKes.toFixed(2)}%)
                 </p>
-                {updateType === "capital_addition" && additionalCapital && (
+                {(updateType === "capital_addition" || updateType === "capital_withdrawal") && additionalCapital && (
                   <p className="text-sm">
                     New Total Invested:{" "}
-                    {(investment.totalInvested + Number(additionalCapital)).toLocaleString()}{" "}
+                    {(
+                      updateType === "capital_addition"
+                        ? investment.totalInvested + Number(additionalCapital)
+                        : investment.totalInvested - Number(additionalCapital)
+                    ).toLocaleString()}{" "}
                     {investment.currency}
                   </p>
                 )}
